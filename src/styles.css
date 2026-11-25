@@ -1,4 +1,3 @@
-/* Grund-Styles – wird in den nächsten Schritten ergänzt */
 :root {
   --accent: #2563eb;
   --ink: #1f2430;
@@ -22,4 +21,317 @@ body {
   background: #eef0f4;
   color: var(--ink);
   font-size: 14px;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ---------- Kopfzeile ---------- */
+.topbar {
+  margin: 16px;
+  padding: 14px 18px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #e8ebf1;
+  padding: 3px;
+  border-radius: 10px;
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: thin;
+  flex: 0 1 auto;
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
+}
+
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  background: #e8ebf1;
+  padding: 3px;
+  border-radius: 9px;
+}
+
+.lang-btn {
+  border: 0;
+  background: transparent;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.lang-btn.active {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
+}
+
+.today-label {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.today-label b {
+  color: var(--ink);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.btn {
+  border: 1px solid #d5dae2;
+  background: #fff;
+  color: var(--ink);
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: #f6f8fb;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn.danger {
+  color: #dc2626;
+  border-color: #f3c1c1;
+  background: #fff;
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.hint {
+  margin: 0 16px 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.status {
+  text-align: center;
+  padding: 64px 16px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ---------- Jahresraster ---------- */
+.year-grid {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 6px;
+  overflow-x: auto;
+  align-items: flex-start;
+}
+
+.month {
+  flex: 1 0 150px;
+  min-width: 150px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 9px 6px 11px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.month-name {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4b5563;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 4px;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.day-row:hover {
+  background: #f1f5fb;
+}
+
+.day-row.weekend {
+  background: #f7f8fa;
+}
+
+.day-row.weekend:hover {
+  background: #eef2f8;
+}
+
+.day-row.today {
+  background: #fff6dd;
+  box-shadow: inset 0 0 0 1px #f0b429;
+}
+
+.day-row.today .dnum {
+  font-weight: 800;
+  color: #b45309;
+}
+
+.bands {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 100%;
+  flex: none;
+  width: calc(var(--lanes, 1) * 7px - 2px);
+}
+
+.band {
+  width: 5px;
+  flex: none;
+  height: 100%;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.band.start {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.band.end {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.dnum {
+  width: 17px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.wday {
+  width: 20px;
+  font-size: 10px;
+  color: #9aa3b2;
+  flex: none;
+}
+
+.ename {
+  flex: 1;
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+/* ---------- Legende ---------- */
+.legend {
+  margin: 12px 16px 24px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.legend-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.legend-item:hover {
+  text-decoration: underline;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: none;
+  display: inline-block;
 }

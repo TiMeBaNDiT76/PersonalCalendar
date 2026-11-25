@@ -83,6 +83,8 @@ export const DE = {
   close: 'Schließen',
 
   langLabel: 'Sprache',
+  loading: 'Wird geladen…',
+  loadError: 'Daten konnten nicht geladen werden: {msg}',
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
@@ -131,6 +133,8 @@ export const PL: Record<keyof typeof DE, string> = {
   close: 'Zamknij',
 
   langLabel: 'Język',
+  loading: 'Ładowanie…',
+  loadError: 'Nie udało się załadować danych: {msg}',
 };
 
 export type DictKey = keyof typeof DE;
