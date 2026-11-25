@@ -45,8 +45,8 @@ export const DE = {
   jsonData: 'Daten (JSON)',
   legend: 'Legende',
   hint: 'Tippe auf eine Tageszeile = neuer Termin · Tippe auf einen Farbstreifen = bearbeiten',
-  prevPair: 'Vorherige Monate',
-  nextPair: 'Nächste Monate',
+  prevPair: 'Vorheriger Monat',
+  nextPair: 'Nächster Monat',
 
   entryNew: 'Neuer Termin',
   entryEdit: 'Termin bearbeiten',
@@ -138,8 +138,8 @@ export const PL: Record<keyof typeof DE, string> = {
   jsonData: 'Dane (JSON)',
   legend: 'Legenda',
   hint: 'Dotknij wiersza dnia = nowy termin · dotknij paska koloru = edytuj',
-  prevPair: 'Poprzednie miesiące',
-  nextPair: 'Następne miesiące',
+  prevPair: 'Poprzedni miesiąc',
+  nextPair: 'Następny miesiąc',
 
   entryNew: 'Nowy termin',
   entryEdit: 'Edytuj termin',

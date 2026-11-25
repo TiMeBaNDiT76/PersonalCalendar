@@ -1280,6 +1280,17 @@ button.today-label:hover {
     font-size: 14px;
   }
 
+  /* Sprachschalter im Menü: kompakte Pill, nicht über die volle Breite */
+  .header-actions .lang-switch {
+    align-self: flex-start;
+    margin-bottom: 2px;
+  }
+
+  .header-actions .lang-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
   /* Sync: fest unten rechts, optisch auf Höhe der Legende */
   .sync-btn {
     position: fixed;

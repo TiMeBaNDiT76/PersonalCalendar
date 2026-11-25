@@ -96,20 +96,6 @@ export default function Header({
 
       <div className="spacer" />
 
-      <div className="lang-switch" role="group" aria-label={t('langLabel')}>
-        {(['de', 'pl'] as Lang[]).map((l) => (
-          <button
-            key={l}
-            type="button"
-            className={l === lang ? 'lang-btn active' : 'lang-btn'}
-            aria-pressed={l === lang}
-            onClick={() => setLang(l)}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       {/* Sync bleibt außerhalb des Menüs (Handy: fest unten rechts) */}
       <button
         type="button"
@@ -126,8 +112,22 @@ export default function Header({
         {t('newEntry')}
       </button>
 
-      {/* Sekundär-Aktionen: Desktop inline, Handy im Burger-Menü */}
+      {/* Sekundär-Aktionen: Desktop inline, Handy im Burger-Menü –
+          inkl. Sprachumschaltung (zuerst, damit sie im Menü oben steht) */}
       <div className={`header-actions${menuOpen ? ' open' : ''}`}>
+        <div className="lang-switch" role="group" aria-label={t('langLabel')}>
+          {(['de', 'pl'] as Lang[]).map((l) => (
+            <button
+              key={l}
+              type="button"
+              className={l === lang ? 'lang-btn active' : 'lang-btn'}
+              aria-pressed={l === lang}
+              onClick={() => setLang(l)}
+            >
+              {l.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="btn"
