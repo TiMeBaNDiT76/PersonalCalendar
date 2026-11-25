@@ -90,7 +90,9 @@ jobs:
 
       - name: Produktionsdaten einsetzen
         if: steps.refs.outputs.data == 'yes'
-        run: cp data-src/public/data/calendar.enc prod/public/data/calendar.enc
+        run: |
+          mkdir -p prod/public/data
+          cp data-src/public/data/calendar.enc prod/public/data/calendar.enc
 
       - name: Build Produktion
         working-directory: prod
@@ -102,7 +104,9 @@ jobs:
 
       - name: Testdaten einsetzen
         if: steps.refs.outputs.develop == 'yes' && steps.refs.outputs.data_test == 'yes'
-        run: cp data-test-src/public/data/calendar.enc test-src/public/data/calendar.enc
+        run: |
+          mkdir -p test-src/public/data
+          cp data-test-src/public/data/calendar.enc test-src/public/data/calendar.enc
 
       - name: Build Test
         if: steps.refs.outputs.develop == 'yes'
