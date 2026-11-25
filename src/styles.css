@@ -1,4 +1,7 @@
 :root {
+  /* Opt-out gegen Chromes „Auto Dark Theme" (Android): die Seite bleibt
+     immer hell, damit die Terminfarben erkennbar bleiben */
+  color-scheme: only light;
   --accent: #2563eb;
   --ink: #1f2430;
   --muted: #6b7280;
@@ -296,6 +299,9 @@ button.today-label:hover {
   height: 19px;
   padding: 0 4px;
   border-radius: 4px;
+  /* Feine Hellgrau-Linie zwischen den Tagen (gleiche Haarlinie wie
+     unter dem Monatsnamen); box-sizing: border-box hält die Höhe */
+  border-bottom: 1px solid var(--line);
   font-size: 11px;
   cursor: pointer;
   position: relative;
@@ -305,6 +311,11 @@ button.today-label:hover {
 
 .day-row:hover {
   background: #f1f5fb;
+}
+
+/* Unter dem letzten Tag keine Linie – sonst Doppelkante zur Kartenkante */
+.day-row:last-child {
+  border-bottom: 0;
 }
 
 .day-row.weekend {
@@ -650,7 +661,9 @@ button.today-label:hover {
   margin-bottom: 14px;
 }
 
-.dialog label {
+/* .field = Ersatz für <label> um das Typen-Dropdown (siehe EntryDialog) */
+.dialog label,
+.dialog .field {
   display: block;
   font-size: 12px;
   font-weight: 600;
@@ -1262,7 +1275,10 @@ button.today-label:hover {
   .year-grid {
     display: flex;
     gap: 0;
-    padding: 0 0 6px;
+    /* Reserviert die Höhe der Sync-Pill: 33px + 8px Versatz + 10px
+       Luft = 51px – die letzte Tageszeile scrollt knapp über die
+       Pill-Oberkante. + env() für die Home-Bar. */
+    padding: 0 0 calc(51px + env(safe-area-inset-bottom, 0px));
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: auto;
