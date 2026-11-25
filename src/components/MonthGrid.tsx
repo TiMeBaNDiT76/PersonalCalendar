@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
 } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { MONTHS, WEEKDAYS } from '../i18n/dict';
@@ -27,6 +28,8 @@ interface Props {
   onScrollYear?: (year: number) => void;
   /** „Heute"-Button in der mobilen Seitenleiste */
   onToday?: () => void;
+  /** Element links in der Monatsleiste (Handy: Legenden-Pill) */
+  leftSlot?: ReactNode;
   onDayClick?: (iso: string) => void;
   onEntryClick?: (entryId: string) => void;
 }
@@ -61,6 +64,7 @@ export default function MonthGrid({
   todayTick,
   onScrollYear,
   onToday,
+  leftSlot,
   onDayClick,
   onEntryClick,
 }: Props) {
@@ -329,6 +333,7 @@ export default function MonthGrid({
   return (
     <>
       <div className="month-pager">
+        {leftSlot}
         <button
           type="button"
           className="pager-btn"

@@ -120,6 +120,13 @@ function CalendarApp() {
         todayTick={todayTick}
         onScrollYear={setYear}
         onToday={handleToday}
+        leftSlot={
+          <Legend
+            variant="pill"
+            types={view.types}
+            onTypeClick={() => setTypesOpen(true)}
+          />
+        }
         onDayClick={(iso) => setEntryDlg({ entryId: null, date: iso })}
         onEntryClick={(id) => setEntryDlg({ entryId: id, date: null })}
       />
