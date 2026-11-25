@@ -11,9 +11,8 @@
  *
  * Das Passwort wird NIE in eine Datei geschrieben.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { createCipheriv, pbkdf2Sync, randomBytes } from 'node:crypto';
-import { SCHEMA_VERSION } from './schema.mjs';
 
 const password = process.env.DATA_PASSWORD;
 if (!password) {
@@ -25,7 +24,20 @@ const ITERATIONS = 300_000;
 const src = new URL('../public/data/calendar.json', import.meta.url);
 const dst = new URL('../public/data/calendar.enc', import.meta.url);
 
-const plain = readFileSync(src);
+// Klartext lesen und auf die aktuelle Schema-Version migrieren
+// (frisches JSON gilt als v1-Basis, danach laufen alle Migrationen)
+let data = JSON.parse(readFileSync(src, 'utf8'));
+let version = 1;
+const migDir = new URL('./migrations/', import.meta.url);
+for (const f of readdirSync(migDir).filter((n) => n.endsWith('.mjs')).sort()) {
+  const m = await import(new URL(f, migDir));
+  if (m.from === version) {
+    data = m.migrate(data);
+    version = m.to;
+    console.log(`Migration ${f}: v${m.from} → v${m.to}`);
+  }
+}
+const plain = Buffer.from(JSON.stringify(data), 'utf8');
 const salt = randomBytes(16);
 const iv = randomBytes(12);
 const key = pbkdf2Sync(password, salt, ITERATIONS, 32, 'sha256');
@@ -33,7 +45,7 @@ const cipher = createCipheriv('aes-256-gcm', key, iv);
 const ct = Buffer.concat([cipher.update(plain), cipher.final(), cipher.getAuthTag()]);
 
 const out = {
-  v: SCHEMA_VERSION,
+  v: version,
   kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: ITERATIONS, salt: salt.toString('base64') },
   cipher: { name: 'AES-GCM', iv: iv.toString('base64') },
   ct: ct.toString('base64'),
@@ -41,5 +53,5 @@ const out = {
 
 writeFileSync(dst, JSON.stringify(out, null, 2) + '\n');
 console.log(
-  `geschrieben: ${dst.pathname} (v${SCHEMA_VERSION}, ${plain.length} Bytes Klartext → ${ct.length} Bytes Chiffretext)`,
+  `geschrieben: ${dst.pathname} (v${version}, ${plain.length} Bytes Klartext → ${ct.length} Bytes Chiffretext)`,
 );

@@ -3,6 +3,8 @@ import type { Lang } from '../types';
 import { fmtISO, todayISO } from '../utils/dates';
 import YearTabs from './YearTabs';
 
+export type SyncStatus = 'disabled' | 'idle' | 'pending' | 'pushing' | 'error';
+
 interface Props {
   years: number[];
   year: number;
@@ -11,6 +13,9 @@ interface Props {
   onManageTypes?: () => void;
   onJsonData?: () => void;
   onLogout?: () => void;
+  onToday?: () => void;
+  syncStatus?: SyncStatus;
+  onSyncClick?: () => void;
 }
 
 export default function Header({
@@ -21,16 +26,35 @@ export default function Header({
   onManageTypes,
   onJsonData,
   onLogout,
+  onToday,
+  syncStatus = 'disabled',
+  onSyncClick,
 }: Props) {
   const { lang, setLang, t } = useI18n();
+
+  const syncTitle =
+    syncStatus === 'disabled'
+      ? t('syncStDisabled')
+      : syncStatus === 'pending'
+        ? t('syncStPending')
+        : syncStatus === 'pushing'
+          ? t('syncStPushing')
+          : syncStatus === 'error'
+            ? t('syncStError')
+            : t('syncStIdle');
 
   return (
     <header className="topbar">
       <div className="title">📅 {t('title')}</div>
       <YearTabs years={years} active={year} onChange={onYearChange} />
-      <div className="today-label">
+      <button
+        type="button"
+        className="today-label"
+        onClick={onToday}
+        title={t('todayJump')}
+      >
         {t('today')}: <b>{fmtISO(todayISO)}</b>
-      </div>
+      </button>
       <div className="spacer" />
       <div className="lang-switch" role="group" aria-label={t('langLabel')}>
         {(['de', 'pl'] as Lang[]).map((l) => (
@@ -45,6 +69,16 @@ export default function Header({
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        className="btn sync-btn"
+        onClick={onSyncClick}
+        title={syncTitle}
+        aria-label={`${t('sync')}: ${syncTitle}`}
+      >
+        <span className={`sync-dot sync-${syncStatus}`} aria-hidden="true" />
+        {t('sync')}
+      </button>
       <button type="button" className="btn primary new-btn" onClick={onNewEntry} disabled={!onNewEntry}>
         {t('newEntry')}
       </button>

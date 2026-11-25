@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { decryptEnc, fetchEncFile } from '../auth/crypto';
+import { decryptEnc, encryptData, fetchEncFile, type EncFile } from '../auth/crypto';
+import { clearToken, getToken, pullEnc, pushEnc, setToken, SyncError } from '../auth/sync';
 import type { CalendarData, CalendarEntry, CalendarType } from '../types';
 import { tenYearsAgoISO } from '../utils/dates';
+import { mergeData } from '../utils/merge';
 import { SITE_SUFFIX } from '../utils/site';
 
 const OVERLAY_KEY = 'pyc-data-v1' + SITE_SUFFIX;
+
+export type SyncStatus = 'disabled' | 'idle' | 'pending' | 'pushing' | 'error';
 
 function isValidData(v: unknown): v is CalendarData {
   if (!v || typeof v !== 'object') return false;
@@ -24,25 +28,38 @@ function readOverlay(): CalendarData | null {
   }
 }
 
+function writeOverlay(data: CalendarData): void {
+  try {
+    localStorage.setItem(OVERLAY_KEY, JSON.stringify(data));
+  } catch {
+    /* localStorage nicht verfügbar */
+  }
+}
+
+const nowISO = (): string => new Date().toISOString();
+
 export interface UseEntriesResult {
   data: CalendarData | null;
   loading: boolean;
   error: string | null;
-  /** true, wenn localStorage-Änderungen die Quelldatei überschreiben */
+  /** true, wenn es lokale Änderungen gibt, die noch nicht gesendet wurden */
   hasOverlay: boolean;
+  syncStatus: SyncStatus;
   saveEntry: (entry: CalendarEntry) => void;
   deleteEntry: (id: string) => void;
   saveType: (type: CalendarType) => void;
   deleteType: (id: string) => void;
-  /** Lädt die Quelldatei (entschlüsselt) und verwirft localStorage-Änderungen */
   discardChanges: () => Promise<void>;
-  /** Aktuelle Daten als formatiertes JSON */
   toJson: () => string;
+  /** Token speichern und Verbindung testen (true = ok) */
+  connectToken: (token: string) => Promise<boolean>;
+  disconnectToken: () => void;
 }
 
 /**
- * Lädt die verschlüsselte calendar.enc, entschlüsselt sie mit dem
- * Auth-Schlüssel und verwaltet localStorage-Änderungen als Overlay.
+ * Datenpipeline: calendar.enc pullen (GitHub-API, Fallback statische Datei),
+ * entschlüsseln, mit lokalem Overlay mergen, 10-Jahres-Retention – und
+ * Änderungen debounced über die GitHub-API zurückspeichern (Sync).
  */
 export function useEntries(): UseEntriesResult {
   const { key, logout } = useAuth();
@@ -50,41 +67,167 @@ export function useEntries(): UseEntriesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasOverlay, setHasOverlay] = useState(false);
+  const [pushState, setPushState] = useState<'idle' | 'pushing' | 'error'>('idle');
+  const [, setTokenVersion] = useState(0);
 
+  // Refs für async-Callbacks (keine veralteten Closures)
+  const dataRef = useRef<CalendarData | null>(null);
+  const shaRef = useRef<string | null>(null);
+  const metaRef = useRef<{ kdf: EncFile['kdf']; v: number } | null>(null);
+  const keyRef = useRef<CryptoKey | null>(null);
+  const hasOverlayRef = useRef(false);
+  const pushingRef = useRef(false);
+  const pushTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    keyRef.current = key;
+  }, [key]);
+  useEffect(() => {
+    hasOverlayRef.current = hasOverlay;
+  }, [hasOverlay]);
+
+  const updateData = useCallback((d: CalendarData) => {
+    dataRef.current = d;
+    setData(d);
+  }, []);
+
+  /** Lokale Änderung: speichern (Overlay) + Sync anstoßen. */
+  const persist = useCallback(
+    (fn: (prev: CalendarData) => CalendarData) => {
+      const prev = dataRef.current;
+      if (!prev) return;
+      const updated = fn(prev);
+      updateData(updated);
+      writeOverlay(updated);
+      hasOverlayRef.current = true;
+      setHasOverlay(true);
+      schedulePush();
+    },
+    [updateData],
+  );
+
+  const doPush = useCallback(async () => {
+    const d = dataRef.current;
+    const sha = shaRef.current;
+    const meta = metaRef.current;
+    const k = keyRef.current;
+    if (!k || !d || !sha || !meta || !getToken() || !hasOverlayRef.current) return;
+    pushingRef.current = true;
+    setPushState('pushing');
+    try {
+      const enc = await encryptData(d, k, meta);
+      const newSha = await pushEnc(enc, sha, 'sync: Daten aktualisiert');
+      shaRef.current = newSha;
+      try {
+        localStorage.removeItem(OVERLAY_KEY);
+      } catch {
+        /* ignorieren */
+      }
+      hasOverlayRef.current = false;
+      setHasOverlay(false);
+      setPushState('idle');
+    } catch (e) {
+      // sha-Konflikt (anderes Gerät hat gesendet): frisch pullen, mergen, 1 Versuch
+      if (e instanceof SyncError && (e.status === 409 || e.status === 422)) {
+        try {
+          const { file, sha: fresh } = await pullEnc();
+          const remote = await decryptEnc(file, k);
+          const merged = mergeData(remote, d);
+          metaRef.current = { kdf: file.kdf, v: file.v };
+          shaRef.current = fresh;
+          updateData(merged);
+          const enc2 = await encryptData(merged, k, metaRef.current);
+          const newSha = await pushEnc(enc2, fresh, 'sync: Daten aktualisiert');
+          shaRef.current = newSha;
+          try {
+            localStorage.removeItem(OVERLAY_KEY);
+          } catch {
+            /* ignorieren */
+          }
+          hasOverlayRef.current = false;
+          setHasOverlay(false);
+          setPushState('idle');
+          return;
+        } catch {
+          /* durchfallen */
+        }
+      }
+      setPushState('error');
+    } finally {
+      pushingRef.current = false;
+    }
+  }, [updateData]);
+
+  const schedulePush = useCallback(() => {
+    if (!getToken()) return;
+    window.clearTimeout(pushTimer.current);
+    pushTimer.current = window.setTimeout(() => {
+      void doPush();
+    }, 2000);
+  }, [doPush]);
+
+  /** Pull + Entschlüsseln + Merge + Retention – Ladebasis. */
   const applyBase = useCallback(async () => {
     if (!key) return;
-    const file = await fetchEncFile();
+    let file: EncFile;
+    let sha: string | null;
+    try {
+      const remote = await pullEnc();
+      file = remote.file;
+      sha = remote.sha;
+    } catch {
+      // Fallback: statische Datei (veralteter Stand) – kein Push ohne sha
+      try {
+        file = await fetchEncFile();
+        sha = null;
+        setPushState('error');
+      } catch (e) {
+        const overlay = readOverlay();
+        if (overlay) {
+          // Offline: lokale Änderungen weiterverwenden
+          updateData(overlay);
+          hasOverlayRef.current = true;
+          setHasOverlay(true);
+          setPushState('error');
+          return;
+        }
+        throw e;
+      }
+    }
+
     let base: CalendarData;
     try {
       base = await decryptEnc(file, key);
     } catch (e) {
-      // GCM-Tag-Fehler → Schlüssel passt nicht mehr (z. B. Passwort geändert)
       if (e instanceof DOMException && e.name === 'OperationError') {
-        logout();
+        logout(); // Schlüssel passt nicht mehr (z. B. Passwort geändert)
         return;
       }
       throw e;
     }
+
+    metaRef.current = { kdf: file.kdf, v: file.v };
+    shaRef.current = sha;
+    if (sha && getToken()) setPushState('idle');
+
     const overlay = readOverlay();
-    const source = overlay ?? base;
+    let merged = overlay ? mergeData(base, overlay) : base;
 
     // 10-Jahres-Bereinigung: Einträge, die vor 10 Jahren endeten, raus
     const cutoff = tenYearsAgoISO();
-    const kept = source.entries.filter((e) => e.endDate >= cutoff);
-    const pruned = kept.length !== source.entries.length;
-    const next: CalendarData = pruned ? { ...source, entries: kept } : source;
-    if (pruned) {
-      try {
-        localStorage.setItem(OVERLAY_KEY, JSON.stringify(next));
-      } catch {
-        /* ignorieren */
-      }
-    }
+    const kept = merged.entries.filter((e) => e.endDate >= cutoff);
+    const pruned = kept.length !== merged.entries.length;
+    if (pruned) merged = { ...merged, entries: kept };
 
-    setData(next);
-    setHasOverlay(overlay !== null || pruned);
-  }, [key, logout]);
+    updateData(merged);
+    const pending = overlay !== null || pruned;
+    hasOverlayRef.current = pending;
+    setHasOverlay(pending);
+    if (pruned) writeOverlay(merged);
+    if (pending && getToken() && shaRef.current) schedulePush();
+  }, [key, logout, schedulePush, updateData]);
 
+  // Laden, sobald der Auth-Schlüssel steht
   useEffect(() => {
     if (!key) return;
     let cancelled = false;
@@ -102,29 +245,41 @@ export function useEntries(): UseEntriesResult {
     };
   }, [applyBase, key]);
 
-  /** Schreibt in localStorage und aktualisiert den State. */
-  const persist = useCallback((next: (prev: CalendarData) => CalendarData) => {
-    setData((prev) => {
-      if (!prev) return prev;
-      const updated = next(prev);
+  // Bei Fenster-Fokus: neuen Stand holen und mergen (Gerätewechsel)
+  useEffect(() => {
+    if (!key) return;
+    const onFocus = async () => {
+      if (!keyRef.current || pushingRef.current) return;
       try {
-        localStorage.setItem(OVERLAY_KEY, JSON.stringify(updated));
+        const { file, sha } = await pullEnc();
+        if (sha === shaRef.current) return; // nichts Neues
+        const remote = await decryptEnc(file, keyRef.current!);
+        metaRef.current = { kdf: file.kdf, v: file.v };
+        shaRef.current = sha;
+        const merged = dataRef.current ? mergeData(remote, dataRef.current) : remote;
+        updateData(merged);
+        if (getToken()) setPushState('idle');
+        if (hasOverlayRef.current && getToken()) schedulePush();
       } catch {
-        /* localStorage nicht verfügbar – Änderungen bleiben nur im State */
+        /* offline/outage: aktueller Stand bleibt */
       }
-      setHasOverlay(true);
-      return updated;
-    });
-  }, []);
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [key, schedulePush, updateData]);
+
+  // Timer aufräumen
+  useEffect(() => () => window.clearTimeout(pushTimer.current), []);
 
   const saveEntry = useCallback(
     (entry: CalendarEntry) => {
       persist((prev) => {
+        const stamped: CalendarEntry = { ...entry, updatedAt: nowISO() };
         const idx = prev.entries.findIndex((e) => e.id === entry.id);
         const entries =
           idx === -1
-            ? [...prev.entries, entry]
-            : prev.entries.map((e, i) => (i === idx ? entry : e));
+            ? [...prev.entries, stamped]
+            : prev.entries.map((e, i) => (i === idx ? stamped : e));
         return { ...prev, entries };
       });
     },
@@ -133,7 +288,13 @@ export function useEntries(): UseEntriesResult {
 
   const deleteEntry = useCallback(
     (id: string) => {
-      persist((prev) => ({ ...prev, entries: prev.entries.filter((e) => e.id !== id) }));
+      // Tombstone statt Hard-Delete – damit die Lösung auch andere Geräte erreicht
+      persist((prev) => ({
+        ...prev,
+        entries: prev.entries.map((e) =>
+          e.id === id ? { ...e, deleted: true, updatedAt: nowISO() } : e,
+        ),
+      }));
     },
     [persist],
   );
@@ -141,9 +302,10 @@ export function useEntries(): UseEntriesResult {
   const saveType = useCallback(
     (type: CalendarType) => {
       persist((prev) => {
+        const stamped: CalendarType = { ...type, updatedAt: nowISO() };
         const idx = prev.types.findIndex((t) => t.id === type.id);
         const types =
-          idx === -1 ? [...prev.types, type] : prev.types.map((t, i) => (i === idx ? type : t));
+          idx === -1 ? [...prev.types, stamped] : prev.types.map((t, i) => (i === idx ? stamped : t));
         return { ...prev, types };
       });
     },
@@ -152,7 +314,12 @@ export function useEntries(): UseEntriesResult {
 
   const deleteType = useCallback(
     (id: string) => {
-      persist((prev) => ({ ...prev, types: prev.types.filter((t) => t.id !== id) }));
+      persist((prev) => ({
+        ...prev,
+        types: prev.types.map((t) =>
+          t.id === id ? { ...t, deleted: true, updatedAt: nowISO() } : t,
+        ),
+      }));
     },
     [persist],
   );
@@ -163,24 +330,71 @@ export function useEntries(): UseEntriesResult {
     } catch {
       /* ignorieren */
     }
+    hasOverlayRef.current = false;
+    setHasOverlay(false);
     await applyBase();
   }, [applyBase]);
 
   const toJson = useCallback(
-    () => (data ? JSON.stringify({ types: data.types, entries: data.entries }, null, 2) : ''),
+    () =>
+      data
+        ? JSON.stringify(
+            {
+              types: data.types.filter((t) => !t.deleted),
+              entries: data.entries.filter((e) => !e.deleted),
+            },
+            null,
+            2,
+          )
+        : '',
     [data],
   );
+
+  const connectToken = useCallback(
+    async (token: string): Promise<boolean> => {
+      setToken(token);
+      try {
+        await pullEnc(); // sofortiger Verbindungstest
+        setTokenVersion((v) => v + 1);
+        await applyBase();
+        return true;
+      } catch {
+        clearToken();
+        setTokenVersion((v) => v + 1);
+        return false;
+      }
+    },
+    [applyBase],
+  );
+
+  const disconnectToken = useCallback(() => {
+    clearToken();
+    setTokenVersion((v) => v + 1);
+  }, []);
+
+  const syncStatus: SyncStatus = !getToken()
+    ? 'disabled'
+    : pushState === 'pushing'
+      ? 'pushing'
+      : pushState === 'error'
+        ? 'error'
+        : hasOverlay
+          ? 'pending'
+          : 'idle';
 
   return {
     data,
     loading,
     error,
     hasOverlay,
+    syncStatus,
     saveEntry,
     deleteEntry,
     saveType,
     deleteType,
     discardChanges,
     toJson,
+    connectToken,
+    disconnectToken,
   };
 }

@@ -3,101 +3,151 @@ import { useI18n } from '../i18n/I18nContext';
 import { MONTHS, WEEKDAYS } from '../i18n/dict';
 import type { CalendarData } from '../types';
 import { currentYear, daysInMonth, fmtISO, pad, todayISO } from '../utils/dates';
+import { typeLabel } from '../utils/labels';
 import { assignLanes, monthEntries } from '../utils/lanes';
 
 interface Props {
   data: CalendarData;
+  /** Sichtbares Jahresfenster (z. B. [2025…2029]) */
+  years: number[];
+  /** Aktiv angezeigtes Jahr (Reiter) */
   year: number;
+  /** Erhöht sich bei Reiter-Klick → Sprung auf die Standard-Seite des Jahres */
+  navTick: number;
+  /** Erhöht sich bei „Heute"-Klick → Sprung auf den heutigen Monat */
+  todayTick: number;
+  /** Wird beim horizontalen Swipen über Jahresgrenzen aufgerufen (Reiter-Sync) */
+  onScrollYear?: (year: number) => void;
+  /** „Heute"-Button in der mobilen Seitenleiste */
+  onToday?: () => void;
   onDayClick?: (iso: string) => void;
   onEntryClick?: (entryId: string) => void;
 }
 
 const MOBILE_QUERY = '(max-width: 639px)';
-/** 12 Monate als 6 swipbare Paar-Seiten [Jan|Feb] … [Nov|Dez]. */
-const PAGE_COUNT = 6;
+const PAIRS_PER_YEAR = 6; // 12 Monate / 2 pro Seite
 
 /**
- * 12 Monatsspalten nebeneinander, Tage vertikal (1–31).
- * Farbige Streifen liegen links in den Tageszeilen; überlappende Einträge
- * bekommen eigene Bahnen nebeneinander.
- * Auf dem Handy: Scroll-Snap-Carousel mit je 2 Monaten pro Seite.
+ * Jahresstrom: alle sichtbaren Jahre als durchgehende Kette von
+ * Paar-Seiten [Jan|Feb] … [Nov|Dez] – auf dem Handy per Scroll-Snap
+ * swipbar, auch über Jahresgrenzen hinweg. Grenzen sind die Fenster-
+ * Enden (Jahr−1 links, Jahr+3 rechts).
+ * Desktop/Tablet: nur das aktive Jahr sichtbar (year-block-Switch).
  */
-export default function MonthGrid({ data, year, onDayClick, onEntryClick }: Props) {
+export default function MonthGrid({
+  data,
+  years,
+  year,
+  navTick,
+  todayTick,
+  onScrollYear,
+  onToday,
+  onDayClick,
+  onEntryClick,
+}: Props) {
   const { lang, t } = useI18n();
   const gridRef = useRef<HTMLDivElement>(null);
+  const lastNavRef = useRef(-1);
   const [page, setPage] = useState(0);
 
+  const maxPage = years.length * PAIRS_PER_YEAR - 1;
   const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
 
-  /** Seite mit dem heutigen Monat (nur im aktuellen Jahr), sonst erste Seite. */
-  const initialPage = (y: number): number =>
+  /** Absolute Seite eines Jahres (+ Paar-Index). */
+  const absPage = (y: number, pair: number): number => {
+    const yi = Math.max(0, years.indexOf(y));
+    return yi * PAIRS_PER_YEAR + pair;
+  };
+
+  /** Startpaar: heutiger Monat im aktuellen Jahr, sonst Jan|Feb. */
+  const defaultPair = (y: number): number =>
     y === currentYear ? Math.floor(new Date().getMonth() / 2) : 0;
 
-  // Startposition beim Öffnen/Jahreswechsel: sofort, ohne Animation (nur Handy)
+  // Mount + Reiter-Klick: sofortige Position (ohne Animation), nur Handy
   useLayoutEffect(() => {
+    if (lastNavRef.current === navTick) return;
+    lastNavRef.current = navTick;
     const el = gridRef.current;
     if (!el || !isMobile()) return;
-    const target = initialPage(year);
+    const target = absPage(year, defaultPair(year));
     setPage(target);
     el.scrollLeft = target * el.clientWidth;
-  }, [year]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navTick, years, year]);
 
-  // Breakpoint-Wechsel (z. B. Drehen des Handys) → Position neu ausrichten
+  // „Heute"-Klick: weich zum heutigen Monat
+  useEffect(() => {
+    if (todayTick === 0) return;
+    const el = gridRef.current;
+    if (!el) return;
+    const m = new Date().getMonth();
+    if (isMobile()) {
+      const target = absPage(currentYear, Math.floor(m / 2));
+      setPage(target);
+      el.scrollTo({ left: target * el.clientWidth, behavior: 'smooth' });
+    } else {
+      const sec = el.querySelector<HTMLElement>(
+        `.year-block.active [data-month="${m}"]`,
+      );
+      sec?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayTick]);
+
+  // Breakpoint-Wechsel (Drehen): Position an der aktuellen Seite ausrichten
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_QUERY);
     const onChange = () => {
       const el = gridRef.current;
-      if (!el) return;
-      if (mq.matches) {
-        const target = initialPage(year);
-        setPage(target);
-        el.scrollLeft = target * el.clientWidth;
-      } else {
-        setPage(0);
-        el.scrollLeft = 0;
-      }
+      if (!el || !mq.matches) return;
+      setPage((p) => {
+        el.scrollLeft = p * el.clientWidth;
+        return p;
+      });
     };
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
-  }, [year]);
+  }, []);
 
   const onScroll = () => {
     const el = gridRef.current;
-    if (!el || el.clientWidth === 0) return;
-    const p = Math.round(el.scrollLeft / el.clientWidth);
-    setPage(Math.max(0, Math.min(PAGE_COUNT - 1, p)));
+    if (!el || el.clientWidth === 0 || !isMobile()) return;
+    const p = Math.max(0, Math.min(maxPage, Math.round(el.scrollLeft / el.clientWidth)));
+    setPage(p);
+    const yi = Math.min(years.length - 1, Math.floor(p / PAIRS_PER_YEAR));
+    const y = years[yi];
+    if (y !== year) onScrollYear?.(y);
   };
 
   const goto = (p: number) => {
     const el = gridRef.current;
     if (!el) return;
-    const clamped = Math.max(0, Math.min(PAGE_COUNT - 1, p));
-    setPage(clamped);
-    el.scrollTo({ left: clamped * el.clientWidth, behavior: 'smooth' });
+    const c = Math.max(0, Math.min(maxPage, p));
+    setPage(c);
+    el.scrollTo({ left: c * el.clientWidth, behavior: 'smooth' });
   };
 
   const colorOf = (typeId: string): string =>
     data.types.find((ty) => ty.id === typeId)?.color ?? '#95a5a6';
   const typeName = (typeId: string): string => {
     const ty = data.types.find((x) => x.id === typeId);
-    if (!ty) return '';
-    return lang === 'pl' ? ty.namePl : ty.name;
+    return ty ? typeLabel(ty, lang) : '';
   };
 
-  const renderMonth = (m: number) => {
+  const renderMonth = (y: number, m: number) => {
     const monthName = MONTHS[lang][m];
-    const dim = daysInMonth(year, m);
+    const dim = daysInMonth(y, m);
     const mm = pad(m + 1);
-    const mStart = `${year}-${mm}-01`;
-    const mEnd = `${year}-${mm}-${pad(dim)}`;
+    const mStart = `${y}-${mm}-01`;
+    const mEnd = `${y}-${mm}-${pad(dim)}`;
     const list = monthEntries(data.entries, mStart, mEnd);
     const { map, count } = assignLanes(list);
     const lanes = Math.max(count, 1);
 
     const rows = [];
     for (let d = 1; d <= dim; d++) {
-      const iso = `${year}-${mm}-${pad(d)}`;
-      const dow = new Date(year, m, d).getDay();
+      const iso = `${y}-${mm}-${pad(d)}`;
+      const dow = new Date(y, m, d).getDay();
       const cls = ['day-row'];
       if (dow === 0 || dow === 6) cls.push('weekend');
       if (iso === todayISO) cls.push('today');
@@ -167,15 +217,16 @@ export default function MonthGrid({ data, year, onDayClick, onEntryClick }: Prop
     }
 
     return (
-      <section className="month" key={monthName} aria-label={monthName}>
+      <section className="month" key={`${y}-${m}`} data-month={m} aria-label={monthName}>
         <div className="month-name">{monthName}</div>
         <div className="days">{rows}</div>
       </section>
     );
   };
 
-  const p0 = page * 2;
-  const pagerLabel = `${MONTHS[lang][p0]} – ${MONTHS[lang][p0 + 1]} ${year}`;
+  const yi = Math.min(years.length - 1, Math.floor(page / PAIRS_PER_YEAR));
+  const pair = page % PAIRS_PER_YEAR;
+  const pagerLabel = `${MONTHS[lang][pair * 2]} – ${MONTHS[lang][pair * 2 + 1]} ${years[yi]}`;
 
   return (
     <>
@@ -196,18 +247,29 @@ export default function MonthGrid({ data, year, onDayClick, onEntryClick }: Prop
           type="button"
           className="pager-btn"
           aria-label={t('nextPair')}
-          disabled={page >= PAGE_COUNT - 1}
+          disabled={page >= maxPage}
           onClick={() => goto(page + 1)}
         >
           ›
         </button>
+        <button type="button" className="pager-btn pager-today" onClick={onToday}>
+          {t('today')}
+        </button>
       </div>
 
       <div className="year-grid" ref={gridRef} onScroll={onScroll}>
-        {Array.from({ length: PAGE_COUNT }, (_, p) => (
-          <div className="month-page" key={p}>
-            {renderMonth(p * 2)}
-            {renderMonth(p * 2 + 1)}
+        {years.map((y) => (
+          <div
+            key={y}
+            className={y === year ? 'year-block active' : 'year-block'}
+            data-year={y}
+          >
+            {Array.from({ length: PAIRS_PER_YEAR }, (_, p) => (
+              <div className="month-page" key={p}>
+                {renderMonth(y, p * 2)}
+                {renderMonth(y, p * 2 + 1)}
+              </div>
+            ))}
           </div>
         ))}
       </div>

@@ -7,6 +7,10 @@ export interface CalendarType {
   namePl: string;
   /** Hex-Farbe, z. B. "#e74c3c" */
   color: string;
+  /** v2: Zeitstempel der letzten Änderung (Merge-Regel: Neueres gewinnt) */
+  updatedAt?: string;
+  /** v2: Tombstone – wird bei der Anzeige ausgeblendet */
+  deleted?: boolean;
 }
 
 /** Ein Eintrag/Zeitraum im Kalender. */
@@ -20,6 +24,10 @@ export interface CalendarEntry {
   startDate: string;
   /** YYYY-MM-DD (>= startDate) */
   endDate: string;
+  /** v2: Zeitstempel der letzten Änderung (Merge-Regel: Neueres gewinnt) */
+  updatedAt?: string;
+  /** v2: Tombstone – wird bei der Anzeige ausgeblendet */
+  deleted?: boolean;
 }
 
 /** Gesamtdaten der Kalenderdatei. */

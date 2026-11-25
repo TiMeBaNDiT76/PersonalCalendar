@@ -6,9 +6,11 @@ import Header from './components/Header';
 import JsonDialog from './components/JsonDialog';
 import Legend from './components/Legend';
 import MonthGrid from './components/MonthGrid';
+import SyncDialog from './components/SyncDialog';
 import TypesDialog from './components/TypesDialog';
 import { I18nProvider, useI18n } from './i18n/I18nContext';
 import { useEntries } from './hooks/useEntries';
+import type { CalendarData } from './types';
 import { currentYear, todayISO, visibleYears } from './utils/dates';
 
 /** Öffnungszustand des Eintrag-Dialogs. */
@@ -25,21 +27,27 @@ function CalendarApp() {
     loading,
     error,
     hasOverlay,
+    syncStatus,
     saveEntry,
     deleteEntry,
     saveType,
     deleteType,
     discardChanges,
     toJson,
+    connectToken,
+    disconnectToken,
   } = useEntries();
   const [years, setYears] = useState<number[]>(() => visibleYears());
   const [year, setYear] = useState<number>(() => {
     const v = visibleYears();
     return v.includes(currentYear) ? currentYear : v[1];
   });
+  const [navTick, setNavTick] = useState(0);
+  const [todayTick, setTodayTick] = useState(0);
   const [entryDlg, setEntryDlg] = useState<EntryDlgState | null>(null);
   const [typesOpen, setTypesOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
 
   // Fenster rollt automatisch mit: beim Fokus/Tab-Wechsel neu berechnen,
   // damit ein Jahreswechsel auch bei lange offenem Tab ein weiteres Jahr zeigt.
@@ -61,37 +69,63 @@ function CalendarApp() {
   if (error) return <main className="status">{t('loadError', { msg: error })}</main>;
   if (!data) return null;
 
+  // Anzeige-Daten: gelöschte Einträge/Typen (Tombstones) ausblenden
+  const view: CalendarData = {
+    types: data.types.filter((ty) => !ty.deleted),
+    entries: data.entries.filter((e) => !e.deleted),
+  };
+
   const entry =
     entryDlg?.entryId != null
-      ? (data.entries.find((e) => e.id === entryDlg.entryId) ?? null)
+      ? (view.entries.find((e) => e.id === entryDlg.entryId) ?? null)
       : null;
+
+  /** Reiter-Klick: Jahr wechseln + zur Standard-Seite springen. */
+  const handleTabYear = (y: number) => {
+    setYear(y);
+    setNavTick((n) => n + 1);
+  };
+
+  /** „Heute": aktuelles Jahr + heutiger Monat. */
+  const handleToday = () => {
+    setYear(currentYear);
+    setTodayTick((n) => n + 1);
+  };
 
   return (
     <>
       <Header
         years={years}
         year={year}
-        onYearChange={setYear}
+        onYearChange={handleTabYear}
         onNewEntry={() => setEntryDlg({ entryId: null, date: todayISO })}
         onManageTypes={() => setTypesOpen(true)}
         onJsonData={() => setJsonOpen(true)}
         onLogout={logout}
+        onToday={handleToday}
+        syncStatus={syncStatus}
+        onSyncClick={() => setSyncOpen(true)}
       />
       <p className="hint">{t('hint')}</p>
       <MonthGrid
-        data={data}
+        data={view}
+        years={years}
         year={year}
+        navTick={navTick}
+        todayTick={todayTick}
+        onScrollYear={setYear}
+        onToday={handleToday}
         onDayClick={(iso) => setEntryDlg({ entryId: null, date: iso })}
         onEntryClick={(id) => setEntryDlg({ entryId: id, date: null })}
       />
-      <Legend types={data.types} onTypeClick={() => setTypesOpen(true)} />
+      <Legend types={view.types} onTypeClick={() => setTypesOpen(true)} />
 
       {entryDlg && (
         <EntryDialog
           open
           entry={entry}
           presetDate={entryDlg.date}
-          types={data.types}
+          types={view.types}
           onSave={saveEntry}
           onDelete={deleteEntry}
           onClose={() => setEntryDlg(null)}
@@ -100,8 +134,8 @@ function CalendarApp() {
 
       <TypesDialog
         open={typesOpen}
-        types={data.types}
-        entries={data.entries}
+        types={view.types}
+        entries={view.entries}
         onSaveType={saveType}
         onDeleteType={deleteType}
         onClose={() => setTypesOpen(false)}
@@ -113,6 +147,14 @@ function CalendarApp() {
         hasOverlay={hasOverlay}
         onDiscard={discardChanges}
         onClose={() => setJsonOpen(false)}
+      />
+
+      <SyncDialog
+        open={syncOpen}
+        status={syncStatus}
+        onConnect={connectToken}
+        onDisconnect={disconnectToken}
+        onClose={() => setSyncOpen(false)}
       />
 
       {/* Schnellzugriff auf Handys */}

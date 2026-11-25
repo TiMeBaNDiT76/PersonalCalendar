@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import type { CalendarEntry, CalendarType } from '../types';
+import { typeLabel } from '../utils/labels';
 import { uid } from '../utils/ids';
 
 interface Props {
@@ -70,7 +71,7 @@ export default function EntryDialog({
   if (!open) return null;
 
   const selected = types.find((ty) => ty.id === typeId) ?? null;
-  const selectedLabel = selected ? (lang === 'pl' ? selected.namePl : selected.name) : t('chooseType');
+  const selectedLabel = selected ? typeLabel(selected, lang) : t('chooseType');
 
   const submit = () => {
     if (!name.trim()) {
@@ -169,7 +170,7 @@ export default function EntryDialog({
                   }}
                 >
                   <span className="dot" style={{ background: ty.color }} />
-                  {lang === 'pl' ? ty.namePl : ty.name}
+                  {typeLabel(ty, lang)}
                 </div>
               ))}
               {types.length === 0 && <div className="dd-option">{t('noTypes')}</div>}
