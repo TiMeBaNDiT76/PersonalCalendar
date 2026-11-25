@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoginScreen from './auth/LoginScreen';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import EntryDialog from './components/EntryDialog';
@@ -9,7 +9,7 @@ import MonthGrid from './components/MonthGrid';
 import TypesDialog from './components/TypesDialog';
 import { I18nProvider, useI18n } from './i18n/I18nContext';
 import { useEntries } from './hooks/useEntries';
-import { YEARS, currentYear, todayISO } from './utils/dates';
+import { currentYear, todayISO, visibleYears } from './utils/dates';
 
 /** Öffnungszustand des Eintrag-Dialogs. */
 interface EntryDlgState {
@@ -32,10 +32,30 @@ function CalendarApp() {
     discardChanges,
     toJson,
   } = useEntries();
-  const [year, setYear] = useState(() => (YEARS.includes(currentYear) ? currentYear : YEARS[0]));
+  const [years, setYears] = useState<number[]>(() => visibleYears());
+  const [year, setYear] = useState<number>(() => {
+    const v = visibleYears();
+    return v.includes(currentYear) ? currentYear : v[1];
+  });
   const [entryDlg, setEntryDlg] = useState<EntryDlgState | null>(null);
   const [typesOpen, setTypesOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
+
+  // Fenster rollt automatisch mit: beim Fokus/Tab-Wechsel neu berechnen,
+  // damit ein Jahreswechsel auch bei lange offenem Tab ein weiteres Jahr zeigt.
+  useEffect(() => {
+    const sync = () => {
+      const v = visibleYears();
+      setYears(v);
+      setYear((y) => (v.includes(y) ? y : v[1]));
+    };
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      window.removeEventListener('focus', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, []);
 
   if (loading) return <main className="status">{t('loading')}</main>;
   if (error) return <main className="status">{t('loadError', { msg: error })}</main>;
@@ -49,7 +69,7 @@ function CalendarApp() {
   return (
     <>
       <Header
-        years={YEARS}
+        years={years}
         year={year}
         onYearChange={setYear}
         onNewEntry={() => setEntryDlg({ entryId: null, date: todayISO })}

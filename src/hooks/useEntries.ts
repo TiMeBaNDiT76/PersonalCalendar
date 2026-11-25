@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { decryptEnc, fetchEncFile } from '../auth/crypto';
 import type { CalendarData, CalendarEntry, CalendarType } from '../types';
+import { tenYearsAgoISO } from '../utils/dates';
 
 const OVERLAY_KEY = 'pyc-data-v1';
 
@@ -64,8 +65,23 @@ export function useEntries(): UseEntriesResult {
       throw e;
     }
     const overlay = readOverlay();
-    setData(overlay ?? base);
-    setHasOverlay(overlay !== null);
+    const source = overlay ?? base;
+
+    // 10-Jahres-Bereinigung: Einträge, die vor 10 Jahren endeten, raus
+    const cutoff = tenYearsAgoISO();
+    const kept = source.entries.filter((e) => e.endDate >= cutoff);
+    const pruned = kept.length !== source.entries.length;
+    const next: CalendarData = pruned ? { ...source, entries: kept } : source;
+    if (pruned) {
+      try {
+        localStorage.setItem(OVERLAY_KEY, JSON.stringify(next));
+      } catch {
+        /* ignorieren */
+      }
+    }
+
+    setData(next);
+    setHasOverlay(overlay !== null || pruned);
   }, [key, logout]);
 
   useEffect(() => {
