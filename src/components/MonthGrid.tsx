@@ -1,7 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { MONTHS, WEEKDAYS } from '../i18n/dict';
-import type { CalendarData } from '../types';
+import type { CalendarData, CalendarEntry } from '../types';
 import { currentYear, daysInMonth, fmtISO, pad, todayISO } from '../utils/dates';
 import { typeLabel } from '../utils/labels';
 import { assignLanes, monthEntries } from '../utils/lanes';
@@ -24,7 +31,19 @@ interface Props {
   onEntryClick?: (entryId: string) => void;
 }
 
+/** Tages-Popover (Touch): alle Termine eines Tages als Text. */
+interface DayPop {
+  iso: string;
+  entries: CalendarEntry[];
+  left: number;
+  anchorTop: number;
+  anchorBottom: number;
+  placeAbove: boolean;
+}
+
 const MOBILE_QUERY = '(max-width: 639px)';
+/** Berührungsgerät ohne Hover → Tageskarte statt Bearbeiten-Direktstart. */
+const TOUCH_QUERY = '(hover: none)';
 const PAIRS_PER_YEAR = 6; // 12 Monate / 2 pro Seite
 
 /**
@@ -49,9 +68,84 @@ export default function MonthGrid({
   const gridRef = useRef<HTMLDivElement>(null);
   const lastNavRef = useRef(-1);
   const [page, setPage] = useState(0);
+  const [pop, setPop] = useState<DayPop | null>(null);
 
   const maxPage = years.length * PAIRS_PER_YEAR - 1;
   const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
+  const isTouch = () => window.matchMedia(TOUCH_QUERY).matches;
+
+  // Popover schließen: Klick außerhalb, Esc, Scrollen, Resize
+  useEffect(() => {
+    if (!pop) return;
+    const close = () => setPop(null);
+    const onDoc = (ev: MouseEvent) => {
+      if (!(ev.target as HTMLElement).closest?.('.day-popover')) setPop(null);
+    };
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') close();
+    };
+    const onScroll = (ev: Event) => {
+      const t = ev.target as HTMLElement;
+      if (t.closest?.('.day-popover')) return; // eigenes Scrollen (lange Liste)
+      close();
+    };
+    document.addEventListener('mousedown', onDoc);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [pop]);
+
+  /** Öffnet die Tageskarte über der Zeile (Flip nach unten, wenn zu wenig Platz). */
+  const openPopover = (iso: string, entries: CalendarEntry[], rowEl: HTMLElement) => {
+    const r = rowEl.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const est = entries.length * 48 + 60;
+    const placeAbove = r.top - est - 12 >= 8;
+    const width = Math.min(300, vw - 16);
+    setPop({
+      iso,
+      entries: [...entries].sort((a, b) => a.startDate.localeCompare(b.startDate)),
+      left: Math.min(Math.max(8, r.left), Math.max(8, vw - width - 8)),
+      anchorTop: r.top,
+      anchorBottom: r.bottom,
+      placeAbove,
+    });
+  };
+
+  /** Einheitliche Touch-Regel: Tag mit Einträgen → Karte, sonst Neuer Termin. */
+  const handleRowClick = (
+    ev: ReactMouseEvent<HTMLDivElement>,
+    iso: string,
+    active: CalendarEntry[],
+  ) => {
+    if (isTouch() && active.length > 0) {
+      openPopover(iso, active, ev.currentTarget);
+      return;
+    }
+    onDayClick?.(iso);
+  };
+
+  /** Streifen/Name: Touch → Tageskarte, Desktop → direkt bearbeiten. */
+  const handleEntryClick = (
+    ev: ReactMouseEvent<HTMLElement>,
+    iso: string,
+    active: CalendarEntry[],
+    entryId: string,
+  ) => {
+    ev.stopPropagation();
+    const row = (ev.currentTarget.closest('.day-row') as HTMLElement) ?? ev.currentTarget;
+    if (isTouch()) {
+      openPopover(iso, active, row);
+      return;
+    }
+    onEntryClick?.(entryId);
+  };
 
   /** Absolute Seite eines Jahres (+ Paar-Index). */
   const absPage = (y: number, pair: number): number => {
@@ -169,10 +263,7 @@ export default function MonthGrid({
             style={{ background: colorOf(e.typeId) }}
             title={tip}
             aria-label={tip}
-            onClick={(ev) => {
-              ev.stopPropagation();
-              onEntryClick?.(e.id);
-            }}
+            onClick={(ev) => handleEntryClick(ev, iso, active, e.id)}
           />
         );
       });
@@ -183,18 +274,19 @@ export default function MonthGrid({
       });
       let name: JSX.Element | null = null;
       if (starters.length > 0) {
-        const e = starters[0];
+        // Alle Start-Namen gemeinsam (kann mit … gekürzt werden)
+        const joined = starters.map((e) => e.name).join(' · ');
+        const tip = starters
+          .map((e) => `${e.name} · ${fmtISO(e.startDate)} – ${fmtISO(e.endDate)}`)
+          .join('  |  ');
         name = (
           <span
             className="ename"
-            style={{ color: colorOf(e.typeId) }}
-            title={`${e.name} · ${fmtISO(e.startDate)} – ${fmtISO(e.endDate)}`}
-            onClick={(ev) => {
-              ev.stopPropagation();
-              onEntryClick?.(e.id);
-            }}
+            style={{ color: colorOf(starters[0].typeId) }}
+            title={tip}
+            onClick={(ev) => handleEntryClick(ev, iso, active, starters[0].id)}
           >
-            {e.name}
+            {joined}
           </span>
         );
       }
@@ -204,7 +296,7 @@ export default function MonthGrid({
           key={iso}
           className={cls.join(' ')}
           title={`${fmtISO(iso)}`}
-          onClick={() => onDayClick?.(iso)}
+          onClick={(ev) => handleRowClick(ev, iso, active)}
         >
           <div className="bands" style={{ '--lanes': lanes } as CSSProperties}>
             {bands}
@@ -273,6 +365,54 @@ export default function MonthGrid({
           </div>
         ))}
       </div>
+
+      {/* Tages-Popover (Touch): alle Termine des Tages als Text */}
+      {pop && (
+        <div
+          className="day-popover"
+          role="dialog"
+          aria-label={fmtISO(pop.iso)}
+          style={{
+            left: pop.left,
+            ...(pop.placeAbove
+              ? { bottom: window.innerHeight - pop.anchorTop + 8 }
+              : { top: pop.anchorBottom + 8 }),
+          }}
+        >
+          <div className="pop-list">
+            {pop.entries.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                className="pop-item"
+                onClick={() => {
+                  setPop(null);
+                  onEntryClick?.(e.id);
+                }}
+              >
+                <span className="pop-row1">
+                  <span className="dot" style={{ background: colorOf(e.typeId) }} />
+                  <span className="pop-name">{e.name}</span>
+                </span>
+                <span className="pop-meta">
+                  {typeName(e.typeId)} · {fmtISO(e.startDate)}
+                  {e.endDate !== e.startDate ? ` – ${fmtISO(e.endDate)}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="pop-new"
+            onClick={() => {
+              setPop(null);
+              onDayClick?.(pop.iso);
+            }}
+          >
+            {t('newEntry')}
+          </button>
+        </div>
+      )}
     </>
   );
 }
