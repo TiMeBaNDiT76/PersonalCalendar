@@ -4,50 +4,75 @@ Ein Jahreskalender als Webseite im Poster-Stil: 12 Monatsspalten nebeneinander,
 die Tage laufen vertikal. Zeiträume (Ferien, Tochter-Wochenenden, Urlaub …)
 werden als farbige Streifen über den Tageszeilen markiert.
 
-## Stand
+**Live:** https://timebandit76.github.io/PersonalCalendar/
 
-- [x] **Mockup** (`mockup.html`) – statisches HTML zum Ansehen und Ausprobieren
-      (alle Dialoge, Beispieldaten, localStorage)
-- [ ] React + Vite App (geplant)
-- [ ] JSON-Datenquelle (`public/data/calendar.json`)
-- [ ] GitHub Pages Deploy
+## Funktionen
 
-## Mockup ansehen
+- **Passwort-Schutz:** Sperrbildschirm; die Daten liegen **AES-256-verschlüsselt**
+  im Repo (`calendar.enc`), Schlüssel aus dem Passwort via PBKDF2 abgeleitet.
+  „Bleiben angemeldet" merkt sich den Schlüssel im Browser.
+- **Jahresfenster:** immer **Vorjahr + aktuelles Jahr + 3 Zukunftsjahre**
+  (2026 → 2025–2029); beim Jahreswechsel rollt das Fenster automatisch mit.
+- **10-Jahres-Aufbewahrung:** Einträge, die vor mehr als 10 Jahren enden,
+  werden beim Laden automatisch bereinigt.
+- **Sprache DE/PL:** Start anhand der Browsersprache, Umschalter in der Kopfzeile
+  (Monate, Wochentage, alle Texte, Typ-Namen beidspurig).
+- **Einträge:** Name, Datum von/bis, TerminTyp (Dropdown); Typen mit eigener
+  Farbe (Palette + Hex), Farbe wirkt sofort auf alle Balken.
+- **Handy:** 2 Monate nebeneinander, horizontal swipen (1 Wisch = 1 Paar),
+  Start auf dem aktuellen Monat, `+`-Floating-Button, sticky Legende.
+- **Druck:** A3 quer (6×2-Raster), Steuerelemente ausgeblendet.
+- **Daten:** `public/data/calendar.enc` (Quelle) + localStorage-Overlay für
+  Änderungen; Export als JSON / „Änderungen verwerfen" im JSON-Dialog.
 
-Datei `mockup.html` direkt im Browser öffnen (kein Server nötig) oder über
-GitHub Pages: https://timebandit76.github.io/PersonalCalendar/
+## Entwicklung
 
-### Was das Mockup kann
-
-- Reiter **2026 | 2027** (aktuelles + kommendes Jahr)
-- 12 Monatsspalten, Mo–So-Kürzel, Wochenenden hinterlegt, „heute" markiert
-- Farbige Streifen links in den Tageszeilen; Überlappungen liegen nebeneinander
-- **Eintrag-Dialog:** Name, Datum von, Datum bis, TerminTyp (Dropdown)
-- **Typen-Verwaltung:** Typen mit eigener Farbe (Palette + Hex), Farbe wirkt
-  sofort auf alle Balken
-- Änderungen überleben im Browser (localStorage), Export als JSON möglich
-
-## Datenformat (geplant für `calendar.json`)
-
-```json
-{
-  "types": [
-    { "id": "ferien",  "name": "Ferien",  "color": "#e74c3c" },
-    { "id": "tochter", "name": "Tochter", "color": "#2ecc71" }
-  ],
-  "entries": [
-    {
-      "id": "e1",
-      "name": "Sommerferien",
-      "typeId": "ferien",
-      "startDate": "2026-07-27",
-      "endDate": "2026-08-07"
-    }
-  ]
-}
+```bash
+npm install
+npm run dev          # lokaler Dev-Server
+npm run build        # Typcheck + Produktions-Build nach dist/
 ```
+
+### Daten ändern (neu verschlüsseln)
+
+Die Quelldatei `public/data/calendar.json` existiert nur zum Verschlüsseln
+(ist nicht im Repository):
+
+```bash
+# 1. JSON anlegen/bearbeiten (public/data/calendar.json)
+# 2. Verschlüsseln (Passwort NIE in Dateien schreiben):
+DATA_PASSWORD=… npm run data:encrypt
+# 3. Klartext wieder entfernen:
+rm public/data/calendar.json
+```
+
+Das Passwort selbst steht nirgends im Code – nur die Verschlüsselung leitet
+sich daraus ab. Ein Passwortwechsel = neue `calendar.enc` erzeugen; angemeldete
+Geräte mit altem Schlüssel werden automatisch abgemeldet.
 
 ## Deployment
 
-GitHub Pages von Branch `main`:
-https://timebandit76.github.io/PersonalCalendar/
+GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`):
+bei jedem Push auf `main` → `npm ci` + Build → Deployment.
+
+Quelle in den Repo-Einstellungen: **Pages → Source: GitHub Actions** (statisch).
+
+## Projektstruktur
+
+```
+index.html, vite.config.ts, tsconfig.json
+scripts/encrypt-data.mjs      # calendar.json → calendar.enc
+public/data/calendar.enc      # verschlüsselte Daten (im Repo)
+public/mockup.html            # statisches Original-Mockup (Referenz)
+src/
+  App.tsx                     # Gate (Auth) + Kalender + Dialog-State
+  auth/                       # Login, WebCrypto, AuthContext
+  components/                 # Header, MonthGrid, Legende, Dialoge
+  hooks/useEntries.ts         # Laden, Entschlüsseln, Overlay, Bereinigung
+  i18n/                       # DE/PL-Wörterbuch + Provider
+  utils/                      # Daten, Lane-Packing, Jahresfenster
+```
+
+## Historie
+
+Ursprüngliches Mockup (ohne App-Logik): `public/mockup.html`
