@@ -863,9 +863,10 @@ button {
     font-size: 10px;
   }
 
-  /* Namensbeschriftung auf schmalen Spalten ausblenden (Info per Tap/Tooltip) */
+  /* Termin-Text auf dem Handy: eingeblendet, lange Namen werden gekürzt
+     (Basis-Regel .ename hat bereits text-overflow: ellipsis) */
   .ename {
-    display: none;
+    font-size: 10px;
   }
 
   /* Legende unten klebrig, damit Farben beim Scrollen erreichbar bleiben */
