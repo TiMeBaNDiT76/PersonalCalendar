@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Jahreskalender – Mockup</title>
+<style>
+  :root{
+    --accent:#2563eb;
+    --ink:#1f2430;
+    --muted:#6b7280;
+    --line:#e5e9f0;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#eef0f4;color:var(--ink);font-size:14px;
+  }
+
+  /* ---------- Kopfzeile ---------- */
+  .topbar{
+    margin:16px;padding:14px 18px;background:var(--card);border-radius:14px;
+    box-shadow:0 1px 3px rgba(15,23,42,.08);
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .title{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .tabs{display:flex;gap:4px;background:#e8ebf1;padding:3px;border-radius:10px}
+  .tab{
+    border:0;background:transparent;padding:6px 18px;border-radius:8px;
+    font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;
+  }
+  .tab.active{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(15,23,42,.15)}
+  .today-label{font-size:13px;color:var(--muted)}
+  .today-label b{color:var(--ink)}
+  .spacer{flex:1}
+  .btn{
+    border:1px solid #d5dae2;background:#fff;color:var(--ink);
+    padding:7px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .btn:hover{background:#f6f8fb}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:#1d4ed8}
+  .btn.danger{color:#dc2626;border-color:#f3c1c1;background:#fff}
+  .btn.danger:hover{background:#fef2f2}
+  .hint{margin:0 16px 10px;font-size:12px;color:var(--muted)}
+
+  /* ---------- Jahresraster ---------- */
+  .year-grid{
+    display:flex;gap:8px;padding:0 16px 6px;overflow-x:auto;align-items:flex-start;
+  }
+  .month{
+    flex:1 0 150px;min-width:150px;background:var(--card);border-radius:12px;
+    padding:9px 6px 11px;box-shadow:0 1px 3px rgba(15,23,42,.08);
+  }
+  .month-name{
+    text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:#4b5563;padding-bottom:6px;
+    border-bottom:1px solid var(--line);margin-bottom:4px;
+  }
+  .days{display:flex;flex-direction:column}
+  .day-row{
+    display:flex;align-items:center;gap:5px;height:19px;padding:0 4px;
+    border-radius:4px;font-size:11px;cursor:pointer;position:relative;
+  }
+  .day-row:hover{background:#f1f5fb}
+  .day-row.weekend{background:#f7f8fa}
+  .day-row.weekend:hover{background:#eef2f8}
+  .day-row.today{background:#fff6dd;box-shadow:inset 0 0 0 1px #f0b429}
+  .day-row.today .dnum{font-weight:800;color:#b45309}
+  .bands{
+    display:flex;align-items:stretch;gap:2px;height:100%;flex:none;
+    width:calc(var(--lanes,1) * 7px - 2px);
+  }
+  .band{
+    width:5px;flex:none;height:100%;border-radius:2px;cursor:pointer;
+  }
+  .band.start{border-top-left-radius:4px;border-top-right-radius:4px}
+  .band.end{border-bottom-left-radius:4px;border-bottom-right-radius:4px}
+  .dnum{
+    width:17px;text-align:right;font-variant-numeric:tabular-nums;flex:none;
+  }
+  .wday{width:20px;font-size:10px;color:#9aa3b2;flex:none}
+  .ename{
+    flex:1;min-width:0;font-size:10px;font-weight:700;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;cursor:pointer;
+  }
+
+  /* ---------- Legende ---------- */
+  .legend{
+    margin:12px 16px 24px;background:var(--card);border-radius:12px;
+    padding:12px 16px;box-shadow:0 1px 3px rgba(15,23,42,.08);
+    display:flex;gap:20px;flex-wrap:wrap;align-items:center;
+  }
+  .legend-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
+  .legend-item:hover{text-decoration:underline}
+  .dot{width:11px;height:11px;border-radius:50%;flex:none;display:inline-block}
+  .dot.empty{background:#cbd2dc}
+
+  /* ---------- Dialoge ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,23,42,.45);
+    display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;
+  }
+  .overlay.hidden{display:none}
+  #typeOverlay{z-index:60}
+  #jsonOverlay{z-index:70}
+  .dialog{
+    background:#fff;border-radius:16px;padding:20px;width:min(430px,100%);
+    box-shadow:0 20px 50px rgba(15,23,42,.3);max-height:92vh;overflow:auto;
+  }
+  .dialog.wide{width:min(560px,100%)}
+  .dialog-title{font-size:16px;font-weight:700;margin-bottom:14px}
+  label{display:block;font-size:12px;font-weight:600;color:#4b5563;margin-bottom:12px}
+  input[type=text],input[type=date],input[type=color]{
+    display:block;width:100%;margin-top:5px;padding:8px 10px;border:1px solid #d7dbe2;
+    border-radius:9px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  input:focus{outline:2px solid #bfdbfe;border-color:var(--accent)}
+  .row2{display:flex;gap:10px}
+  .row2 label{flex:1}
+  .dialog-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px}
+  .error{color:#dc2626;font-size:12px;min-height:16px;margin-top:8px}
+  .info{color:#6b7280;font-size:12px;min-height:16px;margin-top:8px}
+
+  /* Dropdown */
+  .dropdown{position:relative;margin-top:5px}
+  .dd-btn{
+    width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;
+    border:1px solid #d7dbe2;border-radius:9px;background:#fff;font-size:13px;
+    font-family:inherit;color:var(--ink);cursor:pointer;text-align:left;
+  }
+  .dd-btn:hover{background:#f8fafc}
+  .caret{margin-left:auto;color:#9aa3b2;font-size:11px}
+  .dd-list{
+    position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;
+    border:1px solid #d7dbe2;border-radius:10px;box-shadow:0 10px 25px rgba(15,23,42,.18);
+    z-index:5;display:none;overflow:hidden;
+  }
+  .dropdown.open .dd-list{display:block}
+  .dd-option{display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:13px;cursor:pointer}
+  .dd-option:hover{background:#f1f5fb}
+
+  /* Typen-Verwaltung */
+  .type-row{
+    display:flex;align-items:center;gap:10px;padding:9px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .type-name{flex:1;font-size:13px;font-weight:600}
+  .mini{
+    padding:5px 11px;font-size:12px;border:1px solid #d5dae2;background:#fff;
+    border-radius:7px;cursor:pointer;font-family:inherit;color:var(--ink);
+  }
+  .mini:hover{background:#f6f8fb}
+  .mini:disabled{opacity:.45;cursor:not-allowed}
+  .palette{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+  .swatch{
+    width:26px;height:26px;border-radius:7px;cursor:pointer;border:2px solid transparent;
+    padding:0;
+  }
+  .swatch.active{border-color:var(--ink);box-shadow:0 0 0 2px #fff inset}
+  .color-line{display:flex;gap:10px;align-items:flex-end}
+  .color-line .hex{flex:1}
+  .preview-box{
+    margin-top:14px;background:#f7f8fa;border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px;
+  }
+  .preview-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4b5563;margin-bottom:5px}
+  .prev-row{display:flex;align-items:center;gap:6px;height:20px;font-size:11px}
+  .prev-band{width:5px;height:100%;border-radius:3px;flex:none}
+  .prev-name{font-weight:700;font-size:11px}
+
+  textarea{
+    width:100%;height:280px;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:11px;border:1px solid #d7dbe2;border-radius:9px;padding:10px;resize:vertical;
+  }
+
+  /* ---------- Druck ---------- */
+  @media print{
+    body{background:#fff}
+    .topbar .btn,.tabs,.hint{display:none!important}
+    .topbar,.month,.legend{box-shadow:none;border:1px solid #ddd}
+    .overlay{display:none!important}
+    .year-grid{overflow:visible;flex-wrap:wrap}
+    @page{size:A3 landscape;margin:8mm}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="title">📅 Jahreskalender</div>
+  <div class="tabs" id="tabs"></div>
+  <div class="today-label">Heute: <b id="todayLabel"></b></div>
+  <div class="spacer"></div>
+  <button class="btn primary" id="btnNew">+ Termin</button>
+  <button class="btn" id="btnTypes">Typen verwalten</button>
+  <button class="btn" id="btnJson">Daten (JSON)</button>
+</header>
+
+<p class="hint">Mockup · Klick auf eine Tageszeile = neuer Termin · Klick auf einen Farbstreifen bzw. Namen = bearbeiten · Legende oder „Typen verwalten" = Farben ändern</p>
+
+<main class="year-grid" id="yearGrid"></main>
+
+<footer class="legend" id="legend"></footer>
+
+<!-- Dialog: Eintrag -->
+<div class="overlay hidden" id="entryOverlay">
+  <div class="dialog">
+    <div class="dialog-title" id="entryTitle">Neuer Termin</div>
+    <label>Name
+      <input type="text" id="fName" placeholder="z. B. Sommerferien" autocomplete="off">
+    </label>
+    <div class="row2">
+      <label>Datum von<input type="date" id="fFrom"></label>
+      <label>Datum bis<input type="date" id="fTo"></label>
+    </div>
+    <label>TerminTyp
+      <div class="dropdown" id="typeDropdown">
+        <button type="button" class="dd-btn" id="ddBtn">
+          <span class="dot empty" id="ddDot"></span>
+          <span id="ddLabel">Typ wählen</span>
+          <span class="caret">▼</span>
+        </button>
+        <div class="dd-list" id="typeList"></div>
+      </div>
+    </label>
+    <div class="error" id="fError"></div>
+    <div class="dialog-actions">
+      <button class="btn danger" id="fDelete">Löschen</button>
+      <div class="spacer"></div>
+      <button class="btn" id="fCancel">Abbrechen</button>
+      <button class="btn primary" id="fSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: Typen verwalten -->
+<div class="overlay hidden" id="typesOverlay">
+  <div class="dialog">
+    <div class="dialog-title">Typen verwalten</div>
+    <div id="typeRows"></div>
+    <div class="info" id="typeInfo"></div>
+    <div class="dialog-actions">
+      <button class="btn" id="tClose">Schließen</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="tNew">+ Neuer Typ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: Typ bearbeiten -->
+<div class="overlay hidden" id="typeOverlay">
+  <div class="dialog">
+    <div class="dialog-title" id="typeTitle">Neuer Typ</div>
+    <label>Name<input type="text" id="tName" placeholder="z. B. Ferien" autocomplete="off"></label>
+    <label>Farbe
+      <div class="palette" id="palette"></div>
+      <div class="color-line" style="margin-top:10px">
+        <input type="text" id="tHex" class="hex" placeholder="#3498db" autocomplete="off">
+        <input type="color" id="tPicker" style="width:44px;height:35px;padding:2px;border:1px solid #d7dbe2;border-radius:9px;background:#fff">
+      </div>
+    </label>
+    <div class="preview-box">
+      <div class="preview-label">Vorschau</div>
+      <div class="prev-row">
+        <span class="prev-band" id="prevBand"></span>
+        <span class="dnum" style="width:auto">27</span>
+        <span class="wday">Su</span>
+        <span class="prev-name" id="prevName">Beispiel</span>
+      </div>
+    </div>
+    <div class="error" id="tError"></div>
+    <div class="dialog-actions">
+      <button class="btn" id="tCancel">Abbrechen</button>
+      <button class="btn primary" id="tSave">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: JSON -->
+<div class="overlay hidden" id="jsonOverlay">
+  <div class="dialog wide">
+    <div class="dialog-title">Daten (JSON) – so später in <code>calendar.json</code></div>
+    <textarea id="jsonArea" readonly></textarea>
+    <div class="info" id="jsonInfo"></div>
+    <div class="dialog-actions">
+      <button class="btn danger" id="jReset">Beispieldaten zurücksetzen</button>
+      <div class="spacer"></div>
+      <button class="btn" id="jCopy">Kopieren</button>
+      <button class="btn primary" id="jClose">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= Stammdaten ================= */
+const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WD=['So','Mo','Di','Mi','Do','Fr','Sa'];
+const PALETTE=['#9b59b6','#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#e91e63','#95a5a6','#795548'];
+const KEY='pyc-mockup-v1';
+
+const DEMO={
+  types:[
+    {id:'ferien',name:'Ferien',color:'#e74c3c'},
+    {id:'tochter',name:'Tochter-Wochenenden',color:'#2ecc71'},
+    {id:'urlaub',name:'Urlaub',color:'#3498db'},
+    {id:'brueckentag',name:'Brückentag',color:'#f1c40f'}
+  ],
+  entries:[
+    {id:'e1',name:'Winterferien',typeId:'ferien',startDate:'2026-01-01',endDate:'2026-01-06'},
+    {id:'e2',name:'Brückentag',typeId:'brueckentag',startDate:'2026-05-14',endDate:'2026-05-14'},
+    {id:'e3',name:'Urlaub Frühling',typeId:'urlaub',startDate:'2026-05-16',endDate:'2026-05-22'},
+    {id:'e4',name:'Fronleichnam',typeId:'brueckentag',startDate:'2026-06-04',endDate:'2026-06-04'},
+    {id:'e5',name:'Tochter',typeId:'tochter',startDate:'2026-06-05',endDate:'2026-06-07'},
+    {id:'e6',name:'Tochter',typeId:'tochter',startDate:'2026-06-12',endDate:'2026-06-14'},
+    {id:'e7',name:'Tochter',typeId:'tochter',startDate:'2026-06-19',endDate:'2026-06-21'},
+    {id:'e8',name:'Tochter',typeId:'tochter',startDate:'2026-06-26',endDate:'2026-06-28'},
+    {id:'e9',name:'Sommerferien',typeId:'ferien',startDate:'2026-07-27',endDate:'2026-08-07'},
+    {id:'e10',name:'Tochter',typeId:'tochter',startDate:'2026-08-01',endDate:'2026-08-03'},
+    {id:'e11',name:'Kurzurlaub',typeId:'urlaub',startDate:'2026-08-14',endDate:'2026-08-16'},
+    {id:'e12',name:'Herbstferien',typeId:'ferien',startDate:'2026-10-12',endDate:'2026-10-16'},
+    {id:'e13',name:'Tochter',typeId:'tochter',startDate:'2026-11-27',endDate:'2026-11-29'},
+    {id:'e14',name:'Weihnachtsferien',typeId:'ferien',startDate:'2026-12-21',endDate:'2026-12-31'},
+    {id:'e15',name:'Winterferien',typeId:'ferien',startDate:'2027-01-02',endDate:'2027-01-09'},
+    {id:'e16',name:'Urlaub Sommer',typeId:'urlaub',startDate:'2027-07-24',endDate:'2027-08-06'},
+    {id:'e17',name:'Tochter',typeId:'tochter',startDate:'2027-08-07',endDate:'2027-08-09'},
+    {id:'e18',name:'Weihnachtsferien',typeId:'ferien',startDate:'2027-12-23',endDate:'2027-12-31'}
+  ]
+};
+
+/* ================= State ================= */
+function loadState(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw) return null;
+    const s=JSON.parse(raw);
+    if(s&&Array.isArray(s.types)&&Array.isArray(s.entries)) return s;
+  }catch(e){/* egal */}
+  return null;
+}
+function saveState(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+
+let state=loadState()||JSON.parse(JSON.stringify(DEMO));
+const now=new Date();
+const currentYear=now.getFullYear();
+let year=currentYear;
+const todayISO=isoOf(now);
+
+/* ================= Helfer ================= */
+function pad(n){return String(n).padStart(2,'0')}
+function isoOf(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function fmt(iso){const p=iso.split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function colorOf(typeId){const t=state.types.find(t=>t.id===typeId);return t?t.color:'#95a5a6'}
+function typeName(typeId){const t=state.types.find(t=>t.id===typeId);return t?t.name:'(unbekannt)'}
+function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+function show(id){document.getElementById(id).classList.remove('hidden')}
+function hide(id){document.getElementById(id).classList.add('hidden')}
+
+/* ================= Raster ================= */
+function monthEntries(mStart,mEnd){
+  return state.entries
+    .filter(e=>e.startDate<=mEnd&&e.endDate>=mStart)
+    .sort((a,b)=>a.startDate.localeCompare(b.startDate)||a.id.localeCompare(b.id));
+}
+function assignLanes(list){
+  const laneEnds=[];const map=new Map();
+  for(const e of list){
+    let li=laneEnds.findIndex(end=>end<e.startDate);
+    if(li===-1){laneEnds.push(e.endDate);li=laneEnds.length-1}
+    else laneEnds[li]=e.endDate;
+    map.set(e.id,li);
+  }
+  return {map,count:laneEnds.length};
+}
+
+function renderTabs(){
+  const tabs=document.getElementById('tabs');
+  tabs.innerHTML=[currentYear,currentYear+1]
+    .map(y=>`<button class="tab${y===year?' active':''}" data-year="${y}">${y}</button>`)
+    .join('');
+}
+function renderLegend(){
+  const el=document.getElementById('legend');
+  el.innerHTML='<span class="legend-title">Legende</span>'+
+    state.types.map(t=>
+      `<span class="legend-item" data-type="${t.id}" title="Typ bearbeiten">
+        <span class="dot" style="background:${t.color}"></span>${esc(t.name)}
+      </span>`).join('');
+}
+function renderMonths(){
+  const grid=document.getElementById('yearGrid');
+  let html='';
+  for(let m=0;m<12;m++){
+    const dim=new Date(year,m+1,0).getDate();
+    const mStart=year+'-'+pad(m+1)+'-01';
+    const mEnd=year+'-'+pad(m+1)+'-'+pad(dim);
+    const list=monthEntries(mStart,mEnd);
+    const {map,count}=assignLanes(list);
+    const lanes=Math.max(count,1);
+    let rows='';
+    for(let d=1;d<=dim;d++){
+      const iso=year+'-'+pad(m+1)+'-'+pad(d);
+      const dow=new Date(year,m,d).getDay();
+      const cls=['day-row'];
+      if(dow===0||dow===6)cls.push('weekend');
+      if(iso===todayISO)cls.push('today');
+      const active=list.filter(e=>e.startDate<=iso&&iso<=e.endDate)
+        .sort((a,b)=>map.get(a.id)-map.get(b.id));
+      const bands=active.map(e=>{
+        const segStart=e.startDate>mStart?e.startDate:mStart;
+        const segEnd=e.endDate<mEnd?e.endDate:mEnd;
+        const c='band'+(iso===segStart?' start':'')+(iso===segEnd?' end':'');
+        const tip=esc(e.name)+' · '+fmt(e.startDate)+' – '+fmt(e.endDate)+' · '+esc(typeName(e.typeId));
+        return `<span class="${c}" data-entry="${e.id}" style="background:${colorOf(e.typeId)}" title="${tip}"></span>`;
+      }).join('');
+      const starters=active.filter(e=>iso===(e.startDate>mStart?e.startDate:mStart));
+      let name='';
+      if(starters.length){
+        const e=starters[0];
+        name=`<span class="ename" data-entry="${e.id}" style="color:${colorOf(e.typeId)}" title="${esc(e.name)} · ${fmt(e.startDate)} – ${fmt(e.endDate)}">${esc(e.name)}</span>`;
+      }
+      rows+=`<div class="${cls.join(' ')}" data-date="${iso}" title="Neuen Termin am ${fmt(iso)} anlegen">
+        <div class="bands">${bands}</div>
+        <span class="dnum">${d}</span><span class="wday">${WD[dow]}</span>${name}
+      </div>`;
+    }
+    html+=`<div class="month"><div class="month-name">${MONTHS[m]}</div>
+      <div class="days" style="--lanes:${lanes}">${rows}</div></div>`;
+  }
+  grid.innerHTML=html;
+}
+function render(){renderTabs();renderMonths();renderLegend();renderTypeRows();renderTypeList()}
+
+/* ================= Eintrag-Dialog ================= */
+let editingId=null;
+let selectedTypeId='';
+
+function renderTypeList(){
+  document.getElementById('typeList').innerHTML=state.types.map(t=>
+    `<div class="dd-option" data-type="${t.id}">
+      <span class="dot" style="background:${t.color}"></span>${esc(t.name)}
+     </div>`).join('');
+}
+function renderTypeDropdown(){
+  let t=state.types.find(t=>t.id===selectedTypeId);
+  if(!t)t=state.types[0]||null;
+  selectedTypeId=t?t.id:'';
+  document.getElementById('ddLabel').textContent=t?t.name:'Typ wählen';
+  const dot=document.getElementById('ddDot');
+  dot.style.background=t?t.color:'#cbd2dc';
+  dot.classList.toggle('empty',!t);
+}
+function openEntry(iso,id){
+  editingId=id||null;
+  const e=id?state.entries.find(x=>x.id===id):null;
+  document.getElementById('entryTitle').textContent=id?'Termin bearbeiten':'Neuer Termin';
+  document.getElementById('fName').value=e?e.name:'';
+  document.getElementById('fFrom').value=e?e.startDate:(iso||todayISO);
+  document.getElementById('fTo').value=e?e.endDate:(iso||todayISO);
+  selectedTypeId=e?e.typeId:(state.types[0]?state.types[0].id:'');
+  renderTypeDropdown();
+  document.getElementById('fError').textContent='';
+  document.getElementById('fDelete').classList.toggle('hidden',!id);
+  document.getElementById('typeDropdown').classList.remove('open');
+  show('entryOverlay');
+  document.getElementById('fName').focus();
+}
+function closeEntry(){hide('entryOverlay')}
+
+function saveEntry(){
+  const name=document.getElementById('fName').value.trim();
+  const from=document.getElementById('fFrom').value;
+  const to=document.getElementById('fTo').value;
+  const err=document.getElementById('fError');
+  if(!name){err.textContent='Bitte einen Namen eingeben.';return}
+  if(!from||!to){err.textContent='Bitte beide Daten eingeben.';return}
+  if(from>to){err.textContent='„Datum von" muss vor „Datum bis" liegen.';return}
+  if(!selectedTypeId){err.textContent='Bitte einen TerminTyp wählen.';return}
+  if(editingId){
+    const e=state.entries.find(x=>x.id===editingId);
+    Object.assign(e,{name,typeId:selectedTypeId,startDate:from,endDate:to});
+  }else{
+    state.entries.push({id:uid('e'),name,typeId:selectedTypeId,startDate:from,endDate:to});
+  }
+  saveState();closeEntry();render();
+}
+function deleteEntry(){
+  if(!editingId)return;
+  const e=state.entries.find(x=>x.id===editingId);
+  if(!confirm('„'+e.name+'" wirklich löschen?'))return;
+  state.entries=state.entries.filter(x=>x.id!==editingId);
+  saveState();closeEntry();render();
+}
+
+/* ================= Typen-Dialog ================= */
+let editingTypeId=null;
+let tColor=PALETTE[0];
+
+function renderTypeRows(){
+  const box=document.getElementById('typeRows');
+  if(!state.types.length){
+    box.innerHTML='<div class="info">Noch keine Typen angelegt.</div>';return;
+  }
+  box.innerHTML=state.types.map(t=>{
+    const used=state.entries.some(e=>e.typeId===t.id);
+    return `<div class="type-row">
+      <span class="dot" style="background:${t.color}"></span>
+      <span class="type-name">${esc(t.name)}</span>
+      <button class="mini" data-edit="${t.id}">Bearbeiten</button>
+      <button class="mini" data-del="${t.id}" ${used?'disabled title="Wird noch verwendet"':''}>Löschen</button>
+    </div>`;
+  }).join('');
+}
+function openTypes(){
+  document.getElementById('typeInfo').textContent='';
+  renderTypeRows();show('typesOverlay');
+}
+function openTypeEditor(id){
+  editingTypeId=id||null;
+  const t=id?state.types.find(x=>x.id===id):null;
+  document.getElementById('typeTitle').textContent=id?'Typ bearbeiten':'Neuer Typ';
+  document.getElementById('tName').value=t?t.name:'';
+  tColor=t?t.color:PALETTE[0];
+  document.getElementById('tError').textContent='';
+  renderPalette();renderPreview();show('typeOverlay');
+  document.getElementById('tName').focus();
+}
+function renderPalette(){
+  document.getElementById('palette').innerHTML=PALETTE.map(c=>
+    `<button type="button" class="swatch${c===tColor?' active':''}" data-color="${c}" style="background:${c}" title="${c}"></button>`).join('');
+}
+function renderPreview(){
+  document.getElementById('prevBand').style.background=tColor;
+  const name=document.getElementById('tName').value.trim()||'Beispiel';
+  const pn=document.getElementById('prevName');
+  pn.textContent=name;pn.style.color=tColor;
+  document.getElementById('tHex').value=tColor;
+  document.getElementById('tPicker').value=tColor;
+}
+function saveType(){
+  const name=document.getElementById('tName').value.trim();
+  const err=document.getElementById('tError');
+  if(!name){err.textContent='Bitte einen Namen eingeben.';return}
+  if(editingTypeId){
+    const t=state.types.find(x=>x.id===editingTypeId);
+    t.name=name;t.color=tColor;
+  }else{
+    state.types.push({id:uid('t'),name,color:tColor});
+  }
+  saveState();hide('typeOverlay');render();
+}
+function deleteType(id){
+  const used=state.entries.some(e=>e.typeId===id);
+  if(used){
+    document.getElementById('typeInfo').textContent='Dieser Typ wird noch verwendet und kann nicht gelöscht werden.';
+    return;
+  }
+  state.types=state.types.filter(t=>t.id!==id);
+  saveState();render();
+}
+
+/* ================= JSON-Dialog ================= */
+function openJson(){
+  document.getElementById('jsonArea').value=JSON.stringify({types:state.types,entries:state.entries},null,2);
+  document.getElementById('jsonInfo').textContent='';
+  show('jsonOverlay');
+}
+
+/* ================= Events ================= */
+document.getElementById('tabs').addEventListener('click',ev=>{
+  const b=ev.target.closest('.tab');if(!b)return;
+  year=Number(b.dataset.year);render();
+});
+document.getElementById('yearGrid').addEventListener('click',ev=>{
+  const band=ev.target.closest('.band,.ename');
+  if(band){openEntry(null,band.dataset.entry);return}
+  const row=ev.target.closest('.day-row');
+  if(row)openEntry(row.dataset.date,null);
+});
+document.getElementById('legend').addEventListener('click',ev=>{
+  if(ev.target.closest('.legend-item'))openTypes();
+});
+
+document.getElementById('btnNew').addEventListener('click',()=>openEntry(todayISO,null));
+document.getElementById('btnTypes').addEventListener('click',openTypes);
+document.getElementById('btnJson').addEventListener('click',openJson);
+
+document.getElementById('fCancel').addEventListener('click',closeEntry);
+document.getElementById('fSave').addEventListener('click',saveEntry);
+document.getElementById('fDelete').addEventListener('click',deleteEntry);
+
+document.getElementById('ddBtn').addEventListener('click',ev=>{
+  ev.stopPropagation();
+  document.getElementById('typeDropdown').classList.toggle('open');
+});
+document.getElementById('typeList').addEventListener('click',ev=>{
+  const opt=ev.target.closest('.dd-option');if(!opt)return;
+  selectedTypeId=opt.dataset.type;renderTypeDropdown();
+  document.getElementById('typeDropdown').classList.remove('open');
+});
+document.addEventListener('click',ev=>{
+  if(!ev.target.closest('#typeDropdown'))
+    document.getElementById('typeDropdown').classList.remove('open');
+});
+
+document.getElementById('tClose').addEventListener('click',()=>hide('typesOverlay'));
+document.getElementById('tNew').addEventListener('click',()=>openTypeEditor(null));
+document.getElementById('typeRows').addEventListener('click',ev=>{
+  const ed=ev.target.closest('[data-edit]');if(ed){openTypeEditor(ed.dataset.edit);return}
+  const del=ev.target.closest('[data-del]');if(del&&!del.disabled)deleteType(del.dataset.del);
+});
+document.getElementById('palette').addEventListener('click',ev=>{
+  const s=ev.target.closest('.swatch');if(!s)return;
+  tColor=s.dataset.color;renderPalette();renderPreview();
+});
+document.getElementById('tHex').addEventListener('change',ev=>{
+  const v=ev.target.value.trim();
+  if(/^#([0-9a-f]{6})$/i.test(v)){tColor=v;renderPalette();renderPreview()}
+  else document.getElementById('tError').textContent='Farbe bitte als Hex-Wert, z. B. #3498db.';
+});
+document.getElementById('tPicker').addEventListener('input',ev=>{
+  tColor=ev.target.value;renderPalette();renderPreview();
+});
+document.getElementById('tName').addEventListener('input',renderPreview);
+document.getElementById('tCancel').addEventListener('click',()=>hide('typeOverlay'));
+document.getElementById('tSave').addEventListener('click',saveType);
+
+document.getElementById('jClose').addEventListener('click',()=>hide('jsonOverlay'));
+document.getElementById('jCopy').addEventListener('click',async()=>{
+  const info=document.getElementById('jsonInfo');
+  try{await navigator.clipboard.writeText(document.getElementById('jsonArea').value);info.textContent='Kopiert.'}
+  catch(e){info.textContent='Kopieren nicht möglich – Text manuell markieren.'}
+});
+document.getElementById('jReset').addEventListener('click',()=>{
+  if(!confirm('Alle Änderungen verwerfen und Beispieldaten wiederherstellen?'))return;
+  state=JSON.parse(JSON.stringify(DEMO));
+  saveState();hide('jsonOverlay');render();
+});
+
+document.addEventListener('keydown',ev=>{
+  if(ev.key!=='Escape')return;
+  hide('jsonOverlay');hide('typeOverlay');hide('typesOverlay');closeEntry();
+});
+
+/* ================= Start ================= */
+document.getElementById('todayLabel').textContent=fmt(todayISO);
+render();
+</script>
+</body>
+</html>
