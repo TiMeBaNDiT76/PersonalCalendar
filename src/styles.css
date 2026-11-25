@@ -335,3 +335,291 @@ button {
   flex: none;
   display: inline-block;
 }
+
+/* ---------- Dialoge ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.overlay-top {
+  z-index: 60;
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  width: min(430px, 100%);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.3);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.dialog.wide {
+  width: min(560px, 100%);
+}
+
+.dialog-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.dialog label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.dialog input[type='text'],
+.dialog input[type='date'],
+.dialog input[type='color'] {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px 10px;
+  border: 1px solid #d7dbe2;
+  border-radius: 9px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+}
+
+.dialog input:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: var(--accent);
+}
+
+.row2 {
+  display: flex;
+  gap: 10px;
+}
+
+.row2 label {
+  flex: 1;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 12px;
+  min-height: 16px;
+  margin-top: 8px;
+}
+
+.info {
+  color: #6b7280;
+  font-size: 12px;
+  min-height: 16px;
+  margin-top: 8px;
+}
+
+/* Typ-Dropdown */
+.dropdown {
+  position: relative;
+  margin-top: 5px;
+}
+
+.dd-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #d7dbe2;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.dd-btn:hover {
+  background: #f8fafc;
+}
+
+.caret {
+  margin-left: auto;
+  color: #9aa3b2;
+  font-size: 11px;
+}
+
+.dd-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d7dbe2;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+  z-index: 5;
+  display: none;
+  overflow: hidden;
+}
+
+.dropdown.open .dd-list {
+  display: block;
+}
+
+.dd-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dd-option:hover {
+  background: #f1f5fb;
+}
+
+/* Typen-Liste */
+.type-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.type-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mini {
+  padding: 5px 11px;
+  font-size: 12px;
+  border: 1px solid #d5dae2;
+  background: #fff;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.mini:hover:not(:disabled) {
+  background: #f6f8fb;
+}
+
+.mini:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Farbwahl */
+.palette {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  padding: 0;
+}
+
+.swatch.active {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+.color-line {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.color-line .hex {
+  flex: 1;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.color-line .picker {
+  width: 46px !important;
+  height: 37px;
+  padding: 2px !important;
+  cursor: pointer;
+}
+
+.preview-box {
+  margin-top: 14px;
+  background: #f7f8fa;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4b5563;
+  margin-bottom: 5px;
+}
+
+.prev-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  font-size: 11px;
+}
+
+.prev-band {
+  width: 5px;
+  height: 100%;
+  border-radius: 3px;
+  flex: none;
+}
+
+.prev-name {
+  font-weight: 700;
+  font-size: 11px;
+}
+
+/* JSON-Dialog */
+.dialog textarea {
+  width: 100%;
+  height: 280px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  border: 1px solid #d7dbe2;
+  border-radius: 9px;
+  padding: 10px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.dialog code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+}

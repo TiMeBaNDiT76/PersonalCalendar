@@ -61,6 +61,7 @@ export const DE = {
   errDates: 'Bitte beide Daten eingeben.',
   errOrder: '„Datum von“ muss vor „Datum bis“ liegen.',
   errType: 'Bitte einen TerminTyp wählen.',
+  errColor: 'Bitte eine gültige Farbe eingeben, z. B. #3498db.',
 
   typesTitle: 'Typen verwalten',
   typeNew: '+ Neuer Typ',
@@ -111,6 +112,7 @@ export const PL: Record<keyof typeof DE, string> = {
   errDates: 'Proszę podać obie daty.',
   errOrder: '„Data od“ musi być wcześniejsza niż „Data do“.',
   errType: 'Proszę wybrać typ terminu.',
+  errColor: 'Proszę podać prawidłowy kolor, np. #3498db.',
 
   typesTitle: 'Zarządzaj typami',
   typeNew: '+ Nowy typ',
