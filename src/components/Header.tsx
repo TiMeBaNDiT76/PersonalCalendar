@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import type { Lang } from '../types';
 import { fmtISO, todayISO } from '../utils/dates';
-import { IS_TEST } from '../utils/site';
 import YearTabs from './YearTabs';
 
 export type SyncStatus = 'disabled' | 'idle' | 'pending' | 'pushing' | 'error';
@@ -80,10 +79,7 @@ export default function Header({
         ☰
       </button>
 
-      <div className="title">
-        📅 {t('title')}
-        {IS_TEST && <span className="test-badge">TEST</span>}
-      </div>
+      <div className="title">📅 {t('title')}</div>
 
       <YearTabs years={years} active={year} onChange={onYearChange} />
 
