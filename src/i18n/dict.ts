@@ -1,0 +1,136 @@
+import type { Lang } from '../types';
+
+export const MONTHS: Record<Lang, string[]> = {
+  de: [
+    'Januar',
+    'Februar',
+    'März',
+    'April',
+    'Mai',
+    'Juni',
+    'Juli',
+    'August',
+    'September',
+    'Oktober',
+    'November',
+    'Dezember',
+  ],
+  pl: [
+    'Styczeń',
+    'Luty',
+    'Marzec',
+    'Kwiecień',
+    'Maj',
+    'Czerwiec',
+    'Lipiec',
+    'Sierpień',
+    'Wrzesień',
+    'Październik',
+    'Listopad',
+    'Grudzień',
+  ],
+};
+
+/** Index = Date.getDay() (0 = Sonntag). */
+export const WEEKDAYS: Record<Lang, string[]> = {
+  de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+  pl: ['nd', 'pon', 'wt', 'śr', 'czw', 'pt', 'sob'],
+};
+
+export const DE = {
+  title: 'Jahreskalender',
+  today: 'Heute',
+  newEntry: '+ Termin',
+  manageTypes: 'Typen verwalten',
+  jsonData: 'Daten (JSON)',
+  legend: 'Legende',
+  hint: 'Tippe auf eine Tageszeile = neuer Termin · Tippe auf einen Farbstreifen = bearbeiten',
+
+  entryNew: 'Neuer Termin',
+  entryEdit: 'Termin bearbeiten',
+  fName: 'Name',
+  fFrom: 'Datum von',
+  fTo: 'Datum bis',
+  fType: 'TerminTyp',
+  chooseType: 'Typ wählen',
+  save: 'Speichern',
+  cancel: 'Abbrechen',
+  delete: 'Löschen',
+  deleteConfirm: '„{name}“ wirklich löschen?',
+  errName: 'Bitte einen Namen eingeben.',
+  errDates: 'Bitte beide Daten eingeben.',
+  errOrder: '„Datum von“ muss vor „Datum bis“ liegen.',
+  errType: 'Bitte einen TerminTyp wählen.',
+
+  typesTitle: 'Typen verwalten',
+  typeNew: '+ Neuer Typ',
+  typeEdit: 'Typ bearbeiten',
+  typeUsed: 'Dieser Typ wird noch verwendet und kann nicht gelöscht werden.',
+  noTypes: 'Noch keine Typen angelegt.',
+  edit: 'Bearbeiten',
+  fNameDe: 'Name (Deutsch)',
+  fNamePl: 'Name (Polnisch)',
+  color: 'Farbe',
+  preview: 'Vorschau',
+
+  jsonTitle: 'Daten (JSON) – so in calendar.json',
+  copy: 'Kopieren',
+  copied: 'Kopiert.',
+  copyFail: 'Kopieren nicht möglich – Text manuell markieren.',
+  downloadJson: 'Als JSON herunterladen',
+  discard: 'Änderungen verwerfen',
+  discardConfirm: 'Alle Änderungen verwerfen und wieder auf die Datei calendar.json zurücksetzen?',
+  close: 'Schließen',
+
+  langLabel: 'Sprache',
+} as const;
+
+export const PL: Record<keyof typeof DE, string> = {
+  title: 'Kalendarz roczny',
+  today: 'Dzisiaj',
+  newEntry: '+ Termin',
+  manageTypes: 'Zarządzaj typami',
+  jsonData: 'Dane (JSON)',
+  legend: 'Legenda',
+  hint: 'Dotknij wiersza dnia = nowy termin · dotknij paska koloru = edytuj',
+
+  entryNew: 'Nowy termin',
+  entryEdit: 'Edytuj termin',
+  fName: 'Nazwa',
+  fFrom: 'Data od',
+  fTo: 'Data do',
+  fType: 'Typ terminu',
+  chooseType: 'Wybierz typ',
+  save: 'Zapisz',
+  cancel: 'Anuluj',
+  delete: 'Usuń',
+  deleteConfirm: 'Usunąć „{name}“?',
+  errName: 'Proszę podać nazwę.',
+  errDates: 'Proszę podać obie daty.',
+  errOrder: '„Data od“ musi być wcześniejsza niż „Data do“.',
+  errType: 'Proszę wybrać typ terminu.',
+
+  typesTitle: 'Zarządzaj typami',
+  typeNew: '+ Nowy typ',
+  typeEdit: 'Edytuj typ',
+  typeUsed: 'Ten typ jest jeszcze używany i nie może zostać usunięty.',
+  noTypes: 'Brak typów.',
+  edit: 'Edytuj',
+  fNameDe: 'Nazwa (niemiecka)',
+  fNamePl: 'Nazwa (polska)',
+  color: 'Kolor',
+  preview: 'Podgląd',
+
+  jsonTitle: 'Dane (JSON) – tak w calendar.json',
+  copy: 'Kopiuj',
+  copied: 'Skopiowano.',
+  copyFail: 'Kopiowanie niemożliwe – zaznacz tekst ręcznie.',
+  downloadJson: 'Pobierz jako JSON',
+  discard: 'Odrzuć zmiany',
+  discardConfirm: 'Odrzucić wszystkie zmiany i wrócić do pliku calendar.json?',
+  close: 'Zamknij',
+
+  langLabel: 'Język',
+};
+
+export type DictKey = keyof typeof DE;

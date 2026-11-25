@@ -1,0 +1,32 @@
+{
+  "types": [
+    { "id": "ferien", "name": "Ferien", "namePl": "Ferie", "color": "#e74c3c" },
+    { "id": "tochter", "name": "Tochter-Wochenenden", "namePl": "Weekendy z córką", "color": "#2ecc71" },
+    { "id": "urlaub", "name": "Urlaub", "namePl": "Urlop", "color": "#3498db" },
+    { "id": "brueckentag", "name": "Brückentag", "namePl": "Dzień wolny", "color": "#f1c40f" }
+  ],
+  "entries": [
+    { "id": "e1", "name": "Winterferien", "typeId": "ferien", "startDate": "2026-01-01", "endDate": "2026-01-06" },
+    { "id": "e2", "name": "Brückentag", "typeId": "brueckentag", "startDate": "2026-05-14", "endDate": "2026-05-14" },
+    { "id": "e3", "name": "Urlaub Frühling", "typeId": "urlaub", "startDate": "2026-05-16", "endDate": "2026-05-22" },
+    { "id": "e4", "name": "Fronleichnam", "typeId": "brueckentag", "startDate": "2026-06-04", "endDate": "2026-06-04" },
+    { "id": "e5", "name": "Tochter", "typeId": "tochter", "startDate": "2026-06-05", "endDate": "2026-06-07" },
+    { "id": "e6", "name": "Tochter", "typeId": "tochter", "startDate": "2026-06-12", "endDate": "2026-06-14" },
+    { "id": "e7", "name": "Tochter", "typeId": "tochter", "startDate": "2026-06-19", "endDate": "2026-06-21" },
+    { "id": "e8", "name": "Tochter", "typeId": "tochter", "startDate": "2026-06-26", "endDate": "2026-06-28" },
+    { "id": "e9", "name": "Sommerferien", "typeId": "ferien", "startDate": "2026-07-27", "endDate": "2026-08-07" },
+    { "id": "e10", "name": "Tochter", "typeId": "tochter", "startDate": "2026-08-01", "endDate": "2026-08-03" },
+    { "id": "e11", "name": "Kurzurlaub", "typeId": "urlaub", "startDate": "2026-08-14", "endDate": "2026-08-16" },
+    { "id": "e12", "name": "Herbstferien", "typeId": "ferien", "startDate": "2026-10-12", "endDate": "2026-10-16" },
+    { "id": "e13", "name": "Tochter", "typeId": "tochter", "startDate": "2026-11-27", "endDate": "2026-11-29" },
+    { "id": "e14", "name": "Weihnachtsferien", "typeId": "ferien", "startDate": "2026-12-21", "endDate": "2026-12-31" },
+    { "id": "e15", "name": "Winterferien", "typeId": "ferien", "startDate": "2027-01-02", "endDate": "2027-01-09" },
+    { "id": "e16", "name": "Urlaub Sommer", "typeId": "urlaub", "startDate": "2027-07-24", "endDate": "2027-08-06" },
+    { "id": "e17", "name": "Tochter", "typeId": "tochter", "startDate": "2027-08-07", "endDate": "2027-08-09" },
+    { "id": "e18", "name": "Weihnachtsferien", "typeId": "ferien", "startDate": "2027-12-23", "endDate": "2027-12-31" },
+    { "id": "e19", "name": "Winterferien", "typeId": "ferien", "startDate": "2028-01-02", "endDate": "2028-01-09" },
+    { "id": "e20", "name": "Urlaub Sommer", "typeId": "urlaub", "startDate": "2030-07-27", "endDate": "2030-08-14" },
+    { "id": "e21", "name": "Tochter", "typeId": "tochter", "startDate": "2030-08-01", "endDate": "2030-08-03" },
+    { "id": "e22", "name": "Weihnachtsferien", "typeId": "ferien", "startDate": "2035-12-22", "endDate": "2035-12-31" }
+  ]
+}
