@@ -44,7 +44,6 @@ export const DE = {
   manageTypes: 'Typen verwalten',
   jsonData: 'Daten (JSON)',
   legend: 'Legende',
-  hint: 'Tippe auf eine Tageszeile = neuer Termin · Tippe auf einen Farbstreifen = bearbeiten',
   prevPair: 'Vorheriger Monat',
   nextPair: 'Nächster Monat',
 
@@ -137,7 +136,6 @@ export const PL: Record<keyof typeof DE, string> = {
   manageTypes: 'Zarządzaj typami',
   jsonData: 'Dane (JSON)',
   legend: 'Legenda',
-  hint: 'Dotknij wiersza dnia = nowy termin · dotknij paska koloru = edytuj',
   prevPair: 'Poprzedni miesiąc',
   nextPair: 'Następny miesiąc',
 

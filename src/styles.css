@@ -247,12 +247,6 @@ button.today-label:hover {
   background: #fef2f2;
 }
 
-.hint {
-  margin: 0 16px 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .status {
   text-align: center;
   padding: 64px 16px;
@@ -1113,10 +1107,6 @@ button.today-label:hover {
     display: none;
   }
 
-  .hint {
-    margin: 0 8px 8px;
-  }
-
   /* Monatsleiste: klebt direkt unter der Kopfzeile (Höhe via --hdr-h,
      die Header-Komponente misst sie mit dem ResizeObserver) */
   .month-pager {
@@ -1409,7 +1399,6 @@ button.today-label:hover {
   .topbar .menu-toggle,
   .topbar .header-actions,
   .lang-switch,
-  .hint,
   .fab,
   .day-popover,
   .overlay {

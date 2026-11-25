@@ -111,7 +111,6 @@ function CalendarApp() {
         syncStatus={syncStatus}
         onSyncClick={() => setSyncOpen(true)}
       />
-      <p className="hint">{t('hint')}</p>
       <MonthGrid
         data={view}
         years={years}
