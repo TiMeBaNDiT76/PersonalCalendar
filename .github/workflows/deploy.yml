@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, data, data-test]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +10,7 @@ permissions:
   pages: write
   id-token: write
 
-# Deployt nur eine Job-Einstellung gleichzeitig
+# Nur ein Deployment gleichzeitig – laufende werden abgebrochen
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -19,25 +19,115 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (ausgelöster Ref, vollständige Historie für den Wächter)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Datenwächter – calendar.enc nur mit Changelog oder sync:-Präfix
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="HEAD^"
+          fi
+          CHANGED=$(git diff --name-only "$BEFORE" "$GITHUB_SHA" 2>/dev/null || true)
+          if echo "$CHANGED" | grep -q 'calendar\.enc'; then
+            MSG=$(git log -1 --format=%s "$GITHUB_SHA")
+            if echo "$CHANGED" | grep -q 'DATA_CHANGELOG\.md'; then
+              echo "OK: enc-Änderung mit DATA_CHANGELOG.md"
+            elif echo "$MSG" | grep -q '^sync:'; then
+              echo "OK: sync:-Commit"
+            else
+              echo "::error::calendar.enc geändert, aber weder DATA_CHANGELOG.md noch sync:-Commit gefunden."
+              echo "Siehe MIGRATION.md – Datenänderungen brauchen einen Changelog-Eintrag."
+              exit 1
+            fi
+          else
+            echo "Keine enc-Änderung – Wächter passiv."
+          fi
+
+      - name: Verfügbare Branches prüfen
+        id: refs
+        run: |
+          check() { git ls-remote --exit-code --heads origin "$1" >/dev/null 2>&1 && echo yes || echo no; }
+          echo "develop=$(check develop)" >> "$GITHUB_OUTPUT"
+          echo "data=$(check data)" >> "$GITHUB_OUTPUT"
+          echo "data_test=$(check data-test)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout main (Code Produktion)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+
+      - name: Checkout develop (Code Test)
+        if: steps.refs.outputs.develop == 'yes'
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: test-src
+
+      - name: Checkout data (Daten Produktion)
+        if: steps.refs.outputs.data == 'yes'
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: data-src
+
+      - name: Checkout data-test (Daten Test)
+        if: steps.refs.outputs.data_test == 'yes'
+        uses: actions/checkout@v4
+        with:
+          ref: data-test
+          path: data-test-src
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: prod/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Produktionsdaten einsetzen
+        if: steps.refs.outputs.data == 'yes'
+        run: cp data-src/public/data/calendar.enc prod/public/data/calendar.enc
 
-      - name: Typecheck + Build
-        run: npm run build
+      - name: Build Produktion
+        working-directory: prod
+        env:
+          DEPLOY_BASE: /PersonalCalendar/
+        run: |
+          npm ci
+          npm run build
+
+      - name: Testdaten einsetzen
+        if: steps.refs.outputs.develop == 'yes' && steps.refs.outputs.data_test == 'yes'
+        run: cp data-test-src/public/data/calendar.enc test-src/public/data/calendar.enc
+
+      - name: Build Test
+        if: steps.refs.outputs.develop == 'yes'
+        working-directory: test-src
+        env:
+          DEPLOY_BASE: /PersonalCalendar/test/
+        run: |
+          npm ci
+          npm run build
+
+      - name: Site zusammenbauen (Produktion unter /, Test unter /test/)
+        run: |
+          mkdir -p _site
+          cp -r prod/dist/. _site/
+          if [ -d test-src/dist ]; then
+            mkdir -p _site/test
+            cp -r test-src/dist/. _site/test/
+          fi
+          echo "Ausgelieferte Dateien:"
+          find _site -maxdepth 2 -type f | sort | head -40
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: _site
 
   deploy:
     needs: build

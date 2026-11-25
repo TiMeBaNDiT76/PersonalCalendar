@@ -3,8 +3,9 @@ import { useAuth } from '../auth/AuthContext';
 import { decryptEnc, fetchEncFile } from '../auth/crypto';
 import type { CalendarData, CalendarEntry, CalendarType } from '../types';
 import { tenYearsAgoISO } from '../utils/dates';
+import { SITE_SUFFIX } from '../utils/site';
 
-const OVERLAY_KEY = 'pyc-data-v1';
+const OVERLAY_KEY = 'pyc-data-v1' + SITE_SUFFIX;
 
 function isValidData(v: unknown): v is CalendarData {
   if (!v || typeof v !== 'object') return false;

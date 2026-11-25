@@ -13,6 +13,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createCipheriv, pbkdf2Sync, randomBytes } from 'node:crypto';
+import { SCHEMA_VERSION } from './schema.mjs';
 
 const password = process.env.DATA_PASSWORD;
 if (!password) {
@@ -32,11 +33,13 @@ const cipher = createCipheriv('aes-256-gcm', key, iv);
 const ct = Buffer.concat([cipher.update(plain), cipher.final(), cipher.getAuthTag()]);
 
 const out = {
-  v: 1,
+  v: SCHEMA_VERSION,
   kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: ITERATIONS, salt: salt.toString('base64') },
   cipher: { name: 'AES-GCM', iv: iv.toString('base64') },
   ct: ct.toString('base64'),
 };
 
 writeFileSync(dst, JSON.stringify(out, null, 2) + '\n');
-console.log(`geschrieben: ${dst.pathname} (${plain.length} Bytes Klartext → ${ct.length} Bytes Chiffretext)`);
+console.log(
+  `geschrieben: ${dst.pathname} (v${SCHEMA_VERSION}, ${plain.length} Bytes Klartext → ${ct.length} Bytes Chiffretext)`,
+);

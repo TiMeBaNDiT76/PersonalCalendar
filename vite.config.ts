@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Basis-Pfad für GitHub Pages: https://timebandit76.github.io/PersonalCalendar/
+// Basis-Pfad für GitHub Pages:
+// - Produktion (main):  /PersonalCalendar/
+// - Test (develop):     /PersonalCalendar/test/   (via DEPLOY_BASE im CI)
 export default defineConfig({
-  base: '/PersonalCalendar/',
+  base: process.env.DEPLOY_BASE || '/PersonalCalendar/',
   plugins: [react()],
 });

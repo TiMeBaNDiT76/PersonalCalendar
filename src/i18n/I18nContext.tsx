@@ -8,9 +8,10 @@ import {
   type ReactNode,
 } from 'react';
 import type { Lang } from '../types';
+import { SITE_SUFFIX } from '../utils/site';
 import { DE, PL, type DictKey } from './dict';
 
-const STORAGE_KEY = 'pyc-lang';
+const STORAGE_KEY = 'pyc-lang' + SITE_SUFFIX;
 
 interface I18nValue {
   lang: Lang;

@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { SITE_SUFFIX } from '../utils/site';
 import {
   b64ToBytes,
   decryptEnc,
@@ -16,7 +17,7 @@ import {
   importStoredKey,
 } from './crypto';
 
-const STORE_KEY = 'pyc-auth';
+const STORE_KEY = 'pyc-auth' + SITE_SUFFIX;
 
 type Status = 'checking' | 'login' | 'authed';
 
