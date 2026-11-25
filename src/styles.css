@@ -491,6 +491,83 @@ button.today-label:hover {
   display: inline-block;
 }
 
+/* ---------- Tages-Popover (Touch) ---------- */
+.day-popover {
+  position: fixed;
+  z-index: 45; /* über Legende/FAB, unter den Dialogen */
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
+  padding: 6px;
+  min-width: 240px;
+  max-width: calc(100vw - 16px);
+}
+
+.pop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.pop-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pop-item:hover {
+  background: #f1f5fb;
+}
+
+.pop-row1 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pop-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.pop-meta {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+  padding-left: 18px; /* unter den Namen (Punkt11 + Abstand7) */
+}
+
+.pop-new {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 11px 10px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0 0 8px 8px;
+}
+
+.pop-new:hover {
+  background: #f6f8fb;
+}
+
 /* ---------- Dialoge ---------- */
 .overlay {
   position: fixed;
@@ -1312,6 +1389,7 @@ button.today-label:hover {
   .lang-switch,
   .hint,
   .fab,
+  .day-popover,
   .overlay {
     display: none !important;
   }
