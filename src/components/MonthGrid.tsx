@@ -131,7 +131,8 @@ export default function MonthGrid({
     onDayClick?.(iso);
   };
 
-  /** Streifen/Name: Touch → Tageskarte, Desktop → direkt bearbeiten. */
+  /** Streifen/Name: Touch → immer Tageskarte; Desktop → Karte nur bei
+   *  Überlappung (mehrere Termine am Tag), sonst direkt bearbeiten. */
   const handleEntryClick = (
     ev: ReactMouseEvent<HTMLElement>,
     iso: string,
@@ -141,6 +142,11 @@ export default function MonthGrid({
     ev.stopPropagation();
     const row = (ev.currentTarget.closest('.day-row') as HTMLElement) ?? ev.currentTarget;
     if (isTouch()) {
+      openPopover(iso, active, row);
+      return;
+    }
+    if (active.length > 1) {
+      // Desktop: überlappende Termine als gemeinsame Liste anzeigen
       openPopover(iso, active, row);
       return;
     }
