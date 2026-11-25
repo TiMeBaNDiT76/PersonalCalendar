@@ -402,10 +402,12 @@ button.today-label:hover {
     border-radius 0.25s ease;
 }
 
-/* Eingeklappt: schlanke Pill mit nur dem Chevron */
+/* Eingeklappt: winzige Pill – nur noch der Chevron, Inhalt komplett
+   aus dem Layout (display:none), damit die Box gar nicht größer
+   sein KANN als Schalter + Polsterung */
 .legend.collapsed {
-  max-width: 54px;
-  padding: 4px 10px;
+  max-width: 38px;
+  padding: 4px;
   border-radius: 999px;
   gap: 0;
 }
@@ -432,8 +434,11 @@ button.today-label:hover {
 
 /* In der Pill ist der eigene Rahmen des Schalters überflüssig */
 .legend.collapsed .legend-toggle {
+  width: 30px;
+  height: 30px;
   border: 0;
   background: transparent;
+  font-size: 15px;
 }
 
 .legend.collapsed .legend-toggle:hover {
@@ -448,14 +453,8 @@ button.today-label:hover {
   min-width: 0;
 }
 
-/* Eingeklappt: Inhalt unsichtbar (Griff bleibt bedienbar) */
 .legend.collapsed .legend-content {
-  visibility: hidden;
-  transition: visibility 0s 0.25s;
-}
-
-.legend:not(.collapsed) .legend-content {
-  transition: visibility 0s;
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1363,8 +1362,7 @@ button.today-label:hover {
   }
 
   .legend.collapsed .legend-content {
-    visibility: visible !important;
-    transition: none !important;
+    display: flex !important;
   }
 
   @page {
