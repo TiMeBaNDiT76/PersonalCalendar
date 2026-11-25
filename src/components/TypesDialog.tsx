@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { WEEKDAYS } from '../i18n/dict';
 import type { CalendarEntry, CalendarType } from '../types';
+import { typeLabel } from '../utils/labels';
 import { uid } from '../utils/ids';
 
 const PALETTE = [
@@ -57,7 +58,7 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
   if (!open) return null;
 
   const usedBy = (id: string): boolean => entries.some((e) => e.typeId === id);
-  const labelOf = (ty: CalendarType): string => (lang === 'pl' ? ty.namePl : ty.name);
+  const labelOf = (ty: CalendarType): string => typeLabel(ty, lang);
 
   const openEditor = (ty: CalendarType | null) => {
     setEditing(ty);
@@ -217,6 +218,9 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
                 <span className="prev-name" style={{ color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : undefined }}>
                   {nameDe || namePl || 'Beispiel'}
                 </span>
+              </div>
+              <div className="prev-alt">
+                DE: {nameDe || '–'} · PL: {namePl || '–'}
               </div>
             </div>
 

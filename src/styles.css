@@ -110,8 +110,95 @@ button {
   white-space: nowrap;
 }
 
+/* Kopfzeilen-„Heute"-Button – Optik wie bisher, aber klickbar */
+button.today-label {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+button.today-label:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
 .today-label b {
   color: var(--ink);
+}
+
+/* Sync-Statusanzeige in der Kopfzeile */
+.sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sync-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #cbd2dc;
+  flex: none;
+}
+
+.sync-dot.sync-idle {
+  background: #22c55e;
+}
+
+.sync-dot.sync-pending {
+  background: #f59e0b;
+}
+
+.sync-dot.sync-pushing {
+  background: #3b82f6;
+  animation: sync-pulse 1s ease-in-out infinite;
+}
+
+.sync-dot.sync-error {
+  background: #ef4444;
+}
+
+@keyframes sync-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.sync-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+
+.sync-state {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.sync-state-idle {
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.sync-hint {
+  font-size: 11px;
+  color: #9aa3b2;
+  line-height: 1.4;
+  margin-top: -6px;
+}
+
+.sync-hint + .error {
+  margin-top: 8px;
 }
 
 .spacer {
@@ -606,6 +693,12 @@ button {
   font-size: 11px;
 }
 
+.prev-alt {
+  font-size: 10px;
+  color: #9aa3b2;
+  margin-top: 4px;
+}
+
 /* JSON-Dialog */
 .dialog textarea {
   width: 100%;
@@ -697,12 +790,23 @@ button {
   display: contents; /* Desktop/Tablet: Wrapper unsichtbar, Monate direkte Kinder */
 }
 
+.year-block {
+  display: contents; /* alle Jahre als durchgehender Seitenstrom (Handy) */
+}
+
 .month-pager {
   display: none; /* nur Handy */
 }
 
 .fab {
   display: none; /* nur Handy (muss VOR den Media-Queries stehen!) */
+}
+
+/* Ab Tablet: nur das aktive Jahr zeigen (Jahresstrom braucht Platz) */
+@media (min-width: 640px) {
+  .year-block:not(.active) {
+    display: none;
+  }
 }
 
 /* ---------- Responsiv: Tablet (640–1023px): 3–4 Monatsspalten ---------- */
@@ -811,7 +915,21 @@ button {
     font-size: 13px;
     font-weight: 600;
     text-align: center;
-    min-width: 180px;
+    min-width: 150px;
+  }
+
+  .pager-today {
+    width: auto;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .pager-today:disabled {
+    opacity: 0.4;
   }
 
   /* Carousel: 2 Monate pro Seite, horizontal swipen (Scroll-Snap) */
@@ -954,6 +1072,10 @@ button {
 
   .month-page {
     display: contents !important;
+  }
+
+  .year-block:not(.active) {
+    display: none !important;
   }
 
   .month-pager {

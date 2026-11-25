@@ -45,7 +45,7 @@ export async function deriveKey(
     base,
     { name: 'AES-GCM', length: 256 },
     true,
-    ['decrypt'],
+    ['encrypt', 'decrypt'],
   );
 }
 
@@ -55,7 +55,10 @@ export async function exportKeyB64(key: CryptoKey): Promise<string> {
 }
 
 export async function importStoredKey(b64: string): Promise<CryptoKey> {
-  return crypto.subtle.importKey('raw', b64ToBytes(b64), 'AES-GCM', false, ['decrypt']);
+  return crypto.subtle.importKey('raw', b64ToBytes(b64), 'AES-GCM', false, [
+    'encrypt',
+    'decrypt',
+  ]);
 }
 
 /** AES-256-GCM entschlüsseln; wirft bei falschem Passwort/Schlüssel (GCM-Tag). */
@@ -73,4 +76,28 @@ export async function decryptEnc(file: EncFile, key: CryptoKey): Promise<Calenda
     throw new Error('Ungültige Datenstruktur');
   }
   return data as CalendarData;
+}
+
+/**
+ * Verschlüsselt Daten für den Push – mit den **originalen** KDF-Parametern
+ * und der Schema-Version der zuletzt geladenen Datei, damit andere Geräte
+ * weiterhin mit dem Passwort entschlüsseln können.
+ */
+export async function encryptData(
+  data: CalendarData,
+  key: CryptoKey,
+  meta: { kdf: EncFile['kdf']; v: number },
+): Promise<EncFile> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encoder.encode(JSON.stringify(data)),
+  );
+  return {
+    v: meta.v,
+    kdf: meta.kdf,
+    cipher: { name: 'AES-GCM', iv: bytesToB64(iv) },
+    ct: bytesToB64(new Uint8Array(ct)),
+  };
 }

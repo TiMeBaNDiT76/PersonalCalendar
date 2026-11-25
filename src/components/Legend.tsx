@@ -1,5 +1,6 @@
 import { useI18n } from '../i18n/I18nContext';
 import type { CalendarType } from '../types';
+import { typeLabel } from '../utils/labels';
 
 interface Props {
   types: CalendarType[];
@@ -27,7 +28,7 @@ export default function Legend({ types, onTypeClick }: Props) {
           title={t('manageTypes')}
         >
           <span className="dot" style={{ background: ty.color }} />
-          {lang === 'pl' ? ty.namePl : ty.name}
+          {typeLabel(ty, lang)}
         </span>
       ))}
     </footer>
