@@ -123,6 +123,11 @@ export const DE = {
   hError: 'Feiertage konnten nicht geladen werden: {msg}',
   hNoTypes: 'Zuerst einen TerminTyp anlegen.',
   hNone: 'Keine Feiertage gefunden.',
+  delYearBtn: 'Termine eines Jahres löschen',
+  delTitle: 'Termine eines Jahres löschen',
+  delCount: '{count} Termine in {year} – werden gelöscht.',
+  delNone: 'Für dieses Jahr gibt es keine Termine dieses Typs.',
+  delDone: '{count} Termine aus {year} gelöscht.',
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
@@ -211,6 +216,11 @@ export const PL: Record<keyof typeof DE, string> = {
   hError: 'Nie udało się załadować świąt: {msg}',
   hNoTypes: 'Najpierw utwórz typ terminu.',
   hNone: 'Nie znaleziono świąt.',
+  delYearBtn: 'Usuń terminy z roku',
+  delTitle: 'Usuń terminy z roku',
+  delCount: '{count} terminów w roku {year} – zostaną usunięte.',
+  delNone: 'Brak terminów tego typu w tym roku.',
+  delDone: 'Usunięto {count} terminów z roku {year}.',
 };
 
 /** Länder für den Feiertags-Import (Labels je Sprache). */
