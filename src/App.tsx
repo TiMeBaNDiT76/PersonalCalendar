@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import LoginScreen from './auth/LoginScreen';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import EntryDialog from './components/EntryDialog';
 import Header from './components/Header';
 import JsonDialog from './components/JsonDialog';
@@ -17,6 +19,7 @@ interface EntryDlgState {
 
 function CalendarApp() {
   const { t } = useI18n();
+  const { logout } = useAuth();
   const {
     data,
     loading,
@@ -52,6 +55,7 @@ function CalendarApp() {
         onNewEntry={() => setEntryDlg({ entryId: null, date: todayISO })}
         onManageTypes={() => setTypesOpen(true)}
         onJsonData={() => setJsonOpen(true)}
+        onLogout={logout}
       />
       <p className="hint">{t('hint')}</p>
       <MonthGrid
@@ -104,10 +108,22 @@ function CalendarApp() {
   );
 }
 
+/** Wartet auf den Auth-Status: Prüfen → Login → Kalender. */
+function Gate() {
+  const { status } = useAuth();
+  const { t } = useI18n();
+
+  if (status === 'checking') return <main className="status">{t('loading')}</main>;
+  if (status === 'login') return <LoginScreen />;
+  return <CalendarApp />;
+}
+
 export default function App() {
   return (
     <I18nProvider>
-      <CalendarApp />
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
     </I18nProvider>
   );
 }

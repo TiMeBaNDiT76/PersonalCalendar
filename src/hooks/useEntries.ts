@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { decryptEnc, fetchEncFile } from '../auth/crypto';
 import type { CalendarData, CalendarEntry, CalendarType } from '../types';
 
 const OVERLAY_KEY = 'pyc-data-v1';
-/** Quelldatei liegt in public/data/ – BASE_URL berücksichtigt den GitHub-Pages-Pfad. */
-const SOURCE_URL = `${import.meta.env.BASE_URL}data/calendar.json`;
 
 function isValidData(v: unknown): v is CalendarData {
   if (!v || typeof v !== 'object') return false;
@@ -32,29 +32,44 @@ export interface UseEntriesResult {
   deleteEntry: (id: string) => void;
   saveType: (type: CalendarType) => void;
   deleteType: (id: string) => void;
-  /** Lädt die Quelldatei und verwirft localStorage-Änderungen */
+  /** Lädt die Quelldatei (entschlüsselt) und verwirft localStorage-Änderungen */
   discardChanges: () => Promise<void>;
   /** Aktuelle Daten als formatiertes JSON */
   toJson: () => string;
 }
 
+/**
+ * Lädt die verschlüsselte calendar.enc, entschlüsselt sie mit dem
+ * Auth-Schlüssel und verwaltet localStorage-Änderungen als Overlay.
+ */
 export function useEntries(): UseEntriesResult {
+  const { key, logout } = useAuth();
   const [data, setData] = useState<CalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasOverlay, setHasOverlay] = useState(false);
 
   const applyBase = useCallback(async () => {
-    const res = await fetch(SOURCE_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const base: unknown = await res.json();
-    if (!isValidData(base)) throw new Error('Ungültiges calendar.json');
+    if (!key) return;
+    const file = await fetchEncFile();
+    let base: CalendarData;
+    try {
+      base = await decryptEnc(file, key);
+    } catch (e) {
+      // GCM-Tag-Fehler → Schlüssel passt nicht mehr (z. B. Passwort geändert)
+      if (e instanceof DOMException && e.name === 'OperationError') {
+        logout();
+        return;
+      }
+      throw e;
+    }
     const overlay = readOverlay();
     setData(overlay ?? base);
     setHasOverlay(overlay !== null);
-  }, []);
+  }, [key, logout]);
 
   useEffect(() => {
+    if (!key) return;
     let cancelled = false;
     (async () => {
       try {
@@ -68,7 +83,7 @@ export function useEntries(): UseEntriesResult {
     return () => {
       cancelled = true;
     };
-  }, [applyBase]);
+  }, [applyBase, key]);
 
   /** Schreibt in localStorage und aktualisiert den State. */
   const persist = useCallback((next: (prev: CalendarData) => CalendarData) => {

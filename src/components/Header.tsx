@@ -10,9 +10,18 @@ interface Props {
   onNewEntry?: () => void;
   onManageTypes?: () => void;
   onJsonData?: () => void;
+  onLogout?: () => void;
 }
 
-export default function Header({ years, year, onYearChange, onNewEntry, onManageTypes, onJsonData }: Props) {
+export default function Header({
+  years,
+  year,
+  onYearChange,
+  onNewEntry,
+  onManageTypes,
+  onJsonData,
+  onLogout,
+}: Props) {
   const { lang, setLang, t } = useI18n();
 
   return (
@@ -44,6 +53,9 @@ export default function Header({ years, year, onYearChange, onNewEntry, onManage
       </button>
       <button type="button" className="btn" onClick={onJsonData} disabled={!onJsonData}>
         {t('jsonData')}
+      </button>
+      <button type="button" className="btn" onClick={onLogout} disabled={!onLogout}>
+        {t('logout')}
       </button>
     </header>
   );

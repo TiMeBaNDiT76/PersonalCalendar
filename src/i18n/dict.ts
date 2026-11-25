@@ -88,6 +88,12 @@ export const DE = {
   langLabel: 'Sprache',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
+  authLogin: 'Anmelden',
+  authPassword: 'Passwort',
+  authWrong: 'Falsches Passwort.',
+  authChecking: 'Wird geprüft…',
+  authError: 'Anmeldung fehlgeschlagen – bitte erneut versuchen.',
+  logout: 'Abmelden',
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
@@ -141,6 +147,12 @@ export const PL: Record<keyof typeof DE, string> = {
   langLabel: 'Język',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',
+  authLogin: 'Zaloguj się',
+  authPassword: 'Hasło',
+  authWrong: 'Nieprawidłowe hasło.',
+  authChecking: 'Sprawdzanie…',
+  authError: 'Logowanie nie powiodło się – spróbuj ponownie.',
+  logout: 'Wyloguj się',
 };
 
 export type DictKey = keyof typeof DE;
