@@ -54,6 +54,23 @@ export default function Header({
     };
   }, [menuOpen]);
 
+  // Kopfzeilen-Höhe als CSS-Variable --hdr-h – darunter klebt die
+  // Monatsleiste auf dem Handy (ResizeObserver fängt Umbrechen/Sprache)
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const set = () =>
+      document.documentElement.style.setProperty('--hdr-h', `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    window.addEventListener('resize', set);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', set);
+    };
+  }, []);
+
   const closeMenu = () => setMenuOpen(false);
 
   const syncTitle =

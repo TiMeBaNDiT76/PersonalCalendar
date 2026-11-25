@@ -1056,8 +1056,14 @@ button.today-label:hover {
     font-size: 13px;
   }
 
+  /* Kopfzeile klebt beim Scrollen oben (nur Handy) – randlos als
+     volle App-Leiste, damit nichts durchscheint */
   .topbar {
-    margin: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    margin: 0;
+    border-radius: 0;
     padding: 10px 12px;
     gap: 8px;
   }
@@ -1111,12 +1117,16 @@ button.today-label:hover {
     margin: 0 8px 8px;
   }
 
-  /* Seitenleiste: Paar-Label + Pfeile */
+  /* Monatsleiste: klebt direkt unter der Kopfzeile (Höhe via --hdr-h,
+     die Header-Komponente misst sie mit dem ResizeObserver) */
   .month-pager {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
+    position: sticky;
+    top: var(--hdr-h, 96px);
+    z-index: 39;
     margin: 0 8px 8px;
     padding: 6px 10px;
     background: var(--card);
