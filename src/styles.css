@@ -1262,7 +1262,10 @@ button.today-label:hover {
   .year-grid {
     display: flex;
     gap: 0;
-    padding: 0 0 6px;
+    /* Reserviert Platz für die fixen Pillen unten (FAB 12+54px, Sync
+       8px + ~33px) – sonst kann die letzte Tageszeile nie über sie
+       hinaus nach oben gescrollt werden. + env() für die Home-Bar. */
+    padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px));
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: auto;
