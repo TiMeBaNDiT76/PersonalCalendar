@@ -1,4 +1,10 @@
-import { useEffect, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { WEEKDAYS } from '../i18n/dict';
 import type { CalendarEntry, CalendarType } from '../types';
@@ -29,6 +35,8 @@ interface Props {
   onDeleteType: (id: string) => void;
   /** Alle Einträge eines Typs in einem Jahr als Tombstone entfernen */
   onDeleteEntries?: (typeId: string, year: number) => void;
+  /** Neue Reihenfolge nach Drag & Drop übernehmen */
+  onReorderTypes?: (ordered: CalendarType[]) => void;
   onClose: () => void;
 }
 
@@ -41,6 +49,7 @@ export default function TypesDialog({
   onSaveType,
   onDeleteType,
   onDeleteEntries,
+  onReorderTypes,
   onClose,
 }: Props) {
   const { lang, t } = useI18n();
@@ -53,6 +62,8 @@ export default function TypesDialog({
   const [typeInfo, setTypeInfo] = useState('');
   const [delFor, setDelFor] = useState<CalendarType | null>(null);
   const [delYear, setDelYear] = useState(currentYear);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) {
@@ -138,6 +149,55 @@ export default function TypesDialog({
     setDelFor(null);
   };
 
+  // --- Drag & Drop: Reihenfolge per Griff (Maus + Touch + Tastatur) ---
+  const applyOrder = (from: number, to: number) => {
+    if (from === to) return;
+    const next = [...types];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onReorderTypes?.(next);
+  };
+
+  const startDrag = (idx: number, ev: ReactPointerEvent<HTMLSpanElement>) => {
+    ev.preventDefault(); // kein Textauswählen
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+    setDragIdx(idx);
+  };
+
+  const moveDrag = (ev: ReactPointerEvent<HTMLSpanElement>) => {
+    if (dragIdx === null || !listRef.current) return;
+    const rows = listRef.current.querySelectorAll<HTMLElement>('.type-row');
+    let target = dragIdx;
+    rows.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      if (ev.clientY >= r.top && ev.clientY < r.bottom) target = i;
+    });
+    if (target !== dragIdx) {
+      applyOrder(dragIdx, target);
+      setDragIdx(target);
+    }
+  };
+
+  const endDrag = (ev: ReactPointerEvent<HTMLSpanElement>) => {
+    if (ev.currentTarget.hasPointerCapture?.(ev.pointerId)) {
+      ev.currentTarget.releasePointerCapture(ev.pointerId);
+    }
+    setDragIdx(null);
+  };
+
+  const handleKeyDown = (idx: number, ev: ReactKeyboardEvent<HTMLSpanElement>) => {
+    if (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') return;
+    ev.preventDefault();
+    const target = idx + (ev.key === 'ArrowUp' ? -1 : 1);
+    if (target < 0 || target >= types.length) return;
+    applyOrder(idx, target);
+    // Fokus auf den Griff der bewegten Zeile mitnehmen
+    requestAnimationFrame(() => {
+      const handles = listRef.current?.querySelectorAll<HTMLElement>('.drag-handle');
+      handles?.[target]?.focus();
+    });
+  };
+
   return (
     <>
       <div
@@ -158,12 +218,30 @@ export default function TypesDialog({
               {typeInfo}
             </div>
           )}
-          {types.map((ty) => {
-            const used = usedBy(ty.id);
-            return (
-              <div className="type-row" key={ty.id}>
-                <span className="dot" style={{ background: ty.color }} />
-                <span className="type-name">{labelOf(ty)}</span>
+          <div className="type-list" ref={listRef}>
+            {types.map((ty, i) => {
+              const used = usedBy(ty.id);
+              return (
+                <div
+                  className={dragIdx === i ? 'type-row dragging' : 'type-row'}
+                  key={ty.id}
+                >
+                  <span
+                    className="drag-handle"
+                    role="button"
+                    tabIndex={0}
+                    title={t('dragSort')}
+                    aria-label={`${t('dragSort')}: ${labelOf(ty)}`}
+                    onPointerDown={(ev) => startDrag(i, ev)}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    onKeyDown={(ev) => handleKeyDown(i, ev)}
+                  >
+                    ⠿
+                  </span>
+                  <span className="dot" style={{ background: ty.color }} />
+                  <span className="type-name">{labelOf(ty)}</span>
                 <button
                   type="button"
                   className="mini"
@@ -188,6 +266,7 @@ export default function TypesDialog({
               </div>
             );
           })}
+          </div>
 
           <div className="dialog-actions">
             <button type="button" className="btn" onClick={onClose}>

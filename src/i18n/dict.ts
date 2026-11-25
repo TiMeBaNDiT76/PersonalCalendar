@@ -86,6 +86,7 @@ export const DE = {
 
   langLabel: 'Sprache',
   menu: 'Menü',
+  dragSort: 'Reihenfolge ändern',
   legendToggle: 'Legende ein-/ausklappen',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
@@ -178,6 +179,7 @@ export const PL: Record<keyof typeof DE, string> = {
 
   langLabel: 'Język',
   menu: 'Menu',
+  dragSort: 'Zmień kolejność',
   legendToggle: 'Zwiń lub rozwiń legendę',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',

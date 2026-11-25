@@ -39,6 +39,7 @@ function CalendarApp() {
     disconnectToken,
     addEntries,
     deleteEntriesByTypeYear,
+    reorderTypes,
   } = useEntries();
   const [years, setYears] = useState<number[]>(() => visibleYears());
   const [year, setYear] = useState<number>(() => {
@@ -144,6 +145,7 @@ function CalendarApp() {
         onSaveType={saveType}
         onDeleteType={deleteType}
         onDeleteEntries={deleteEntriesByTypeYear}
+        onReorderTypes={reorderTypes}
         onClose={() => setTypesOpen(false)}
       />
 
