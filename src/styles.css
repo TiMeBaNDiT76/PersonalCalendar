@@ -1197,16 +1197,17 @@ button.today-label:hover {
     scroll-snap-stop: always;
   }
 
+  /* Monatsname erübrigt sich – die sticky Seitenleiste zeigt
+     "November2026"; mehr Platz für die Tageszeilen */
+  .month-name {
+    display: none;
+  }
+
   .month {
     flex: 1 1 0;
     min-width: 0;
-    padding: 8px 4px 10px;
+    padding: 4px 4px 10px;
     border-radius: 10px;
-  }
-
-  .month-name {
-    font-size: 10px;
-    letter-spacing: 0.06em;
   }
 
   /* Größere Touch-Ziele */
