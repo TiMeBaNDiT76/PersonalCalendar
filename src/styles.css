@@ -1262,10 +1262,10 @@ button.today-label:hover {
   .year-grid {
     display: flex;
     gap: 0;
-    /* Reserviert die Höhe der Sync-Pill: 33px + 8px Versatz = 41px –
-       die letzte Tageszeile scrollt genau bis zur Pill-Oberkante.
-       + env() für die Home-Bar. */
-    padding: 0 0 calc(41px + env(safe-area-inset-bottom, 0px));
+    /* Reserviert die Höhe der Sync-Pill: 33px + 8px Versatz + 10px
+       Luft = 51px – die letzte Tageszeile scrollt knapp über die
+       Pill-Oberkante. + env() für die Home-Bar. */
+    padding: 0 0 calc(51px + env(safe-area-inset-bottom, 0px));
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: auto;
