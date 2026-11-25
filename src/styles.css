@@ -624,6 +624,19 @@ button {
   font-size: 12px;
 }
 
+/* ---------- Standard: nur in bestimmten Modi sichtbar ---------- */
+.month-page {
+  display: contents; /* Desktop/Tablet: Wrapper unsichtbar, Monate direkte Kinder */
+}
+
+.month-pager {
+  display: none; /* nur Handy */
+}
+
+.fab {
+  display: none; /* nur Handy (muss VOR den Media-Queries stehen!) */
+}
+
 /* ---------- Responsiv: Tablet (640–1023px): 3–4 Monatsspalten ---------- */
 @media (min-width: 640px) and (max-width: 767px) {
   .year-grid {
@@ -696,17 +709,71 @@ button {
     margin: 0 8px 8px;
   }
 
+  /* Seitenleiste: Paar-Label + Pfeile */
+  .month-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 8px 8px;
+    padding: 6px 10px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
+  .pager-btn {
+    width: 42px;
+    height: 36px;
+    border: 1px solid #d5dae2;
+    background: #fff;
+    border-radius: 8px;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .pager-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pager-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 180px;
+  }
+
+  /* Carousel: 2 Monate pro Seite, horizontal swipen (Scroll-Snap) */
   .year-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    gap: 0;
+    padding: 0 0 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .year-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .month-page {
+    display: flex;
+    flex: 0 0 100%;
     gap: 6px;
-    padding: 0 8px 6px;
-    overflow-x: visible;
+    padding: 0 8px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .month {
+    flex: 1 1 0;
     min-width: 0;
-    flex: none;
     padding: 8px 4px 10px;
     border-radius: 10px;
   }
@@ -809,16 +876,19 @@ button {
   }
 }
 
-/* Desktop-Standard: FAB ausblenden */
-.fab {
-  display: none;
-}
-
 /* ---------- Druck (A3 quer) ---------- */
 @media print {
   body {
     background: #fff;
     font-size: 10px;
+  }
+
+  .month-page {
+    display: contents !important;
+  }
+
+  .month-pager {
+    display: none !important;
   }
 
   .topbar {
@@ -843,6 +913,7 @@ button {
     gap: 6px;
     padding: 0;
     overflow: visible;
+    scroll-snap-type: none;
   }
 
   .month {
