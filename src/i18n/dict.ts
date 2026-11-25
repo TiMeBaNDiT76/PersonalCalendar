@@ -113,6 +113,16 @@ export const DE = {
   syncOk: 'Verbunden – Synchronisation aktiv.',
   syncFail: 'Verbindung fehlgeschlagen – Token prüfen.',
   syncClose: 'Schließen',
+  holidays: 'Feiertage',
+  holidaysTitle: 'Feiertage hinzufügen',
+  hYear: 'Jahr',
+  hCountry: 'Land',
+  hAdd: 'Feiertage hinzufügen',
+  hLoading: 'Feiertage werden geladen…',
+  hResult: '{added} hinzugefügt, {skipped} bereits vorhanden.',
+  hError: 'Feiertage konnten nicht geladen werden: {msg}',
+  hNoTypes: 'Zuerst einen TerminTyp anlegen.',
+  hNone: 'Keine Feiertage gefunden.',
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
@@ -191,6 +201,22 @@ export const PL: Record<keyof typeof DE, string> = {
   syncOk: 'Połączono – synchronizacja aktywna.',
   syncFail: 'Połączenie nie powiodło się – sprawdź token.',
   syncClose: 'Zamknij',
+  holidays: 'Święta',
+  holidaysTitle: 'Dodaj święta',
+  hYear: 'Rok',
+  hCountry: 'Kraj',
+  hAdd: 'Dodaj święta',
+  hLoading: 'Ładowanie świąt…',
+  hResult: '{added} dodano, {skipped} już istnieje.',
+  hError: 'Nie udało się załadować świąt: {msg}',
+  hNoTypes: 'Najpierw utwórz typ terminu.',
+  hNone: 'Nie znaleziono świąt.',
 };
+
+/** Länder für den Feiertags-Import (Labels je Sprache). */
+export const COUNTRIES: { code: string; de: string; pl: string }[] = [
+  { code: 'DE', de: 'Deutschland', pl: 'Niemcy' },
+  { code: 'PL', de: 'Polen', pl: 'Polska' },
+];
 
 export type DictKey = keyof typeof DE;

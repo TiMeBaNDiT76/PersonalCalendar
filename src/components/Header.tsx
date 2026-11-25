@@ -12,6 +12,7 @@ interface Props {
   onYearChange: (year: number) => void;
   onNewEntry?: () => void;
   onManageTypes?: () => void;
+  onHolidays?: () => void;
   onJsonData?: () => void;
   onLogout?: () => void;
   onToday?: () => void;
@@ -25,6 +26,7 @@ export default function Header({
   onYearChange,
   onNewEntry,
   onManageTypes,
+  onHolidays,
   onJsonData,
   onLogout,
   onToday,
@@ -135,6 +137,16 @@ export default function Header({
           }}
         >
           {t('manageTypes')}
+        </button>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            closeMenu();
+            onHolidays?.();
+          }}
+        >
+          {t('holidays')}
         </button>
         <button
           type="button"

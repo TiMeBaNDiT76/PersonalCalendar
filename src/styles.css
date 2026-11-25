@@ -536,6 +536,25 @@ button.today-label:hover {
   color: var(--ink);
 }
 
+.dialog select.native-select {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px 10px;
+  border: 1px solid #d7dbe2;
+  border-radius: 9px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dialog select.native-select:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: var(--accent);
+}
+
 .dialog input:focus {
   outline: 2px solid #bfdbfe;
   border-color: var(--accent);

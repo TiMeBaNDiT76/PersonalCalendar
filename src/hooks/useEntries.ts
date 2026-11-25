@@ -54,6 +54,8 @@ export interface UseEntriesResult {
   /** Token speichern und Verbindung testen (true = ok) */
   connectToken: (token: string) => Promise<boolean>;
   disconnectToken: () => void;
+  /** Mehrere Einträge auf einmal anlegen (ein Sync-Push) */
+  addEntries: (list: CalendarEntry[]) => void;
 }
 
 /**
@@ -286,6 +288,21 @@ export function useEntries(): UseEntriesResult {
     [persist],
   );
 
+  /** Bulk-Anlage (z. B. Feiertags-Import): ein Overlay-Schrieb, ein Push. */
+  const addEntries = useCallback(
+    (list: CalendarEntry[]) => {
+      if (list.length === 0) return;
+      persist((prev) => ({
+        ...prev,
+        entries: [
+          ...prev.entries,
+          ...list.map((e) => ({ ...e, updatedAt: e.updatedAt ?? nowISO() })),
+        ],
+      }));
+    },
+    [persist],
+  );
+
   const deleteEntry = useCallback(
     (id: string) => {
       // Tombstone statt Hard-Delete – damit die Lösung auch andere Geräte erreicht
@@ -396,5 +413,6 @@ export function useEntries(): UseEntriesResult {
     toJson,
     connectToken,
     disconnectToken,
+    addEntries,
   };
 }

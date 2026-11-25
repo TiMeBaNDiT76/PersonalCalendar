@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import type { CalendarEntry, CalendarType } from '../types';
+import { useDropdownFlip } from '../hooks/useDropdownFlip';
 import { typeLabel } from '../utils/labels';
 import { uid } from '../utils/ids';
 
@@ -33,10 +34,10 @@ export default function EntryDialog({
   const [typeId, setTypeId] = useState('');
   const [error, setError] = useState('');
   const [ddOpen, setDdOpen] = useState(false);
-  const [ddUp, setDdUp] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const [ddUp, measureFlip] = useDropdownFlip(ddOpen, dialogRef, listRef);
 
   // Zustand zurücksetzen, wenn der Dialog geöffnet wird
   useEffect(() => {
@@ -71,11 +72,6 @@ export default function EntryDialog({
     return () => document.removeEventListener('click', onDoc);
   }, [ddOpen]);
 
-  // Flip-Zustand zurücksetzen, sobald das Dropdown zu ist
-  useEffect(() => {
-    if (!ddOpen) setDdUp(false);
-  }, [ddOpen]);
-
   /**
    * Öffnet das Dropdown und klappt es nach oben, wenn unten nicht genug
    * Platz im Dialog ist (sonst wäre die Liste am Rand abgeschnitten).
@@ -86,19 +82,7 @@ export default function EntryDialog({
       return;
     }
     setDdOpen(true);
-    requestAnimationFrame(() => {
-      const list = listRef.current;
-      const dlg = dialogRef.current;
-      if (!list || !dlg) return;
-      const lb = list.getBoundingClientRect(); // gemessen im abwärts-Zustand
-      const dr = dlg.getBoundingClientRect();
-      if (lb.bottom <= dr.bottom - 8) {
-        setDdUp(false); // passt nach unten
-        return;
-      }
-      const upTop = lb.top - lb.height - 8; // wäre die Position nach oben
-      setDdUp(upTop >= dr.top + 8); // nur flippen, wenn oben genug Platz
-    });
+    measureFlip();
   };
 
   if (!open) return null;

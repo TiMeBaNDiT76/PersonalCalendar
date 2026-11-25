@@ -3,6 +3,7 @@ import LoginScreen from './auth/LoginScreen';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import EntryDialog from './components/EntryDialog';
 import Header from './components/Header';
+import HolidaysDialog from './components/HolidaysDialog';
 import JsonDialog from './components/JsonDialog';
 import Legend from './components/Legend';
 import MonthGrid from './components/MonthGrid';
@@ -36,6 +37,7 @@ function CalendarApp() {
     toJson,
     connectToken,
     disconnectToken,
+    addEntries,
   } = useEntries();
   const [years, setYears] = useState<number[]>(() => visibleYears());
   const [year, setYear] = useState<number>(() => {
@@ -48,6 +50,7 @@ function CalendarApp() {
   const [typesOpen, setTypesOpen] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [holidaysOpen, setHolidaysOpen] = useState(false);
 
   // Fenster rollt automatisch mit: beim Fokus/Tab-Wechsel neu berechnen,
   // damit ein Jahreswechsel auch bei lange offenem Tab ein weiteres Jahr zeigt.
@@ -100,6 +103,7 @@ function CalendarApp() {
         onYearChange={handleTabYear}
         onNewEntry={() => setEntryDlg({ entryId: null, date: todayISO })}
         onManageTypes={() => setTypesOpen(true)}
+        onHolidays={() => setHolidaysOpen(true)}
         onJsonData={() => setJsonOpen(true)}
         onLogout={logout}
         onToday={handleToday}
@@ -155,6 +159,15 @@ function CalendarApp() {
         onConnect={connectToken}
         onDisconnect={disconnectToken}
         onClose={() => setSyncOpen(false)}
+      />
+
+      <HolidaysDialog
+        open={holidaysOpen}
+        years={years}
+        types={view.types}
+        entries={view.entries}
+        onAdd={addEntries}
+        onClose={() => setHolidaysOpen(false)}
       />
 
       {/* Schnellzugriff auf Handys */}
