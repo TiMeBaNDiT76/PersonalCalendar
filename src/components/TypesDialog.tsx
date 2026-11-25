@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import { WEEKDAYS } from '../i18n/dict';
 import type { CalendarEntry, CalendarType } from '../types';
+import { currentYear } from '../utils/dates';
 import { typeLabel } from '../utils/labels';
 import { uid } from '../utils/ids';
 
@@ -22,13 +23,26 @@ interface Props {
   open: boolean;
   types: CalendarType[];
   entries: CalendarEntry[];
+  /** Sichtbare Jahresfenster-Jahre (für die Jahres-Löschung) */
+  years: number[];
   onSaveType: (type: CalendarType) => void;
   onDeleteType: (id: string) => void;
+  /** Alle Einträge eines Typs in einem Jahr als Tombstone entfernen */
+  onDeleteEntries?: (typeId: string, year: number) => void;
   onClose: () => void;
 }
 
 /** Listen-Dialog aller TerminTypen + Bearbeiten-/Neu-Dialog mit Farbwahl. */
-export default function TypesDialog({ open, types, entries, onSaveType, onDeleteType, onClose }: Props) {
+export default function TypesDialog({
+  open,
+  types,
+  entries,
+  years,
+  onSaveType,
+  onDeleteType,
+  onDeleteEntries,
+  onClose,
+}: Props) {
   const { lang, t } = useI18n();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarType | null>(null);
@@ -36,24 +50,30 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
   const [namePl, setNamePl] = useState('');
   const [color, setColor] = useState(PALETTE[0]);
   const [error, setError] = useState('');
+  const [typeInfo, setTypeInfo] = useState('');
+  const [delFor, setDelFor] = useState<CalendarType | null>(null);
+  const [delYear, setDelYear] = useState(currentYear);
 
   useEffect(() => {
     if (!open) {
       setEditorOpen(false);
+      setDelFor(null);
+      setTypeInfo('');
     }
   }, [open]);
 
-  // Escape: zuerst Bearbeiten-Dialog, dann Liste
+  // Escape: zuerst Lösch-Dialog, dann Bearbeiten, dann Liste
   useEffect(() => {
     if (!open) return;
     const onKey = (ev: KeyboardEvent) => {
       if (ev.key !== 'Escape') return;
-      if (editorOpen) setEditorOpen(false);
+      if (delFor) setDelFor(null);
+      else if (editorOpen) setEditorOpen(false);
       else onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, editorOpen, onClose]);
+  }, [open, editorOpen, delFor, onClose]);
 
   if (!open) return null;
 
@@ -93,6 +113,31 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
     }
   };
 
+  // --- Termine eines Jahres löschen ---
+  const openDel = (ty: CalendarType) => {
+    setDelFor(ty);
+    setDelYear(years.includes(currentYear) ? currentYear : years[0]);
+    setTypeInfo('');
+  };
+
+  const delCount = delFor
+    ? entries.filter(
+        (e) =>
+          e.typeId === delFor.id &&
+          e.startDate <= `${delYear}-12-31` &&
+          e.endDate >= `${delYear}-01-01`,
+      ).length
+    : 0;
+
+  const confirmDel = () => {
+    if (!delFor || delCount === 0) return;
+    onDeleteEntries?.(delFor.id, delYear);
+    setTypeInfo(
+      t('delDone', { count: String(delCount), year: String(delYear) }),
+    );
+    setDelFor(null);
+  };
+
   return (
     <>
       <div
@@ -108,12 +153,26 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
           <div className="dialog-title">{t('typesTitle')}</div>
 
           {types.length === 0 && <div className="info">{t('noTypes')}</div>}
+          {typeInfo && (
+            <div className="info" role="status">
+              {typeInfo}
+            </div>
+          )}
           {types.map((ty) => {
             const used = usedBy(ty.id);
             return (
               <div className="type-row" key={ty.id}>
                 <span className="dot" style={{ background: ty.color }} />
                 <span className="type-name">{labelOf(ty)}</span>
+                <button
+                  type="button"
+                  className="mini"
+                  title={t('delYearBtn')}
+                  aria-label={`${t('delYearBtn')}: ${labelOf(ty)}`}
+                  onClick={() => openDel(ty)}
+                >
+                  🗑
+                </button>
                 <button type="button" className="mini" onClick={() => openEditor(ty)}>
                   {t('edit')}
                 </button>
@@ -234,6 +293,63 @@ export default function TypesDialog({ open, types, entries, onSaveType, onDelete
               </button>
               <button type="button" className="btn primary" onClick={saveEditor}>
                 {t('save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {delFor && (
+        <div
+          className="overlay overlay-top"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('delTitle')}
+          onClick={(ev) => {
+            if (ev.target === ev.currentTarget) setDelFor(null);
+          }}
+        >
+          <div className="dialog">
+            <div className="dialog-title">🗑 {t('delTitle')}</div>
+
+            <div className="type-row" style={{ paddingTop: 0 }}>
+              <span className="dot" style={{ background: delFor.color }} />
+              <span className="type-name">{labelOf(delFor)}</span>
+            </div>
+
+            <label>
+              {t('hYear')}
+              <select
+                className="native-select"
+                value={delYear}
+                onChange={(ev) => setDelYear(Number(ev.target.value))}
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="info" role="status">
+              {delCount > 0
+                ? t('delCount', { count: String(delCount), year: String(delYear) })
+                : t('delNone')}
+            </div>
+
+            <div className="dialog-actions">
+              <button type="button" className="btn" onClick={() => setDelFor(null)}>
+                {t('cancel')}
+              </button>
+              <div className="spacer" />
+              <button
+                type="button"
+                className="btn danger"
+                disabled={delCount === 0}
+                onClick={confirmDel}
+              >
+                {t('delete')}
               </button>
             </div>
           </div>

@@ -87,6 +87,7 @@ export const DE = {
 
   langLabel: 'Sprache',
   menu: 'Menü',
+  legendToggle: 'Legende ein-/ausklappen',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
   authLogin: 'Anmelden',
@@ -112,6 +113,21 @@ export const DE = {
   syncOk: 'Verbunden – Synchronisation aktiv.',
   syncFail: 'Verbindung fehlgeschlagen – Token prüfen.',
   syncClose: 'Schließen',
+  holidays: 'Feiertage',
+  holidaysTitle: 'Feiertage hinzufügen',
+  hYear: 'Jahr',
+  hCountry: 'Land',
+  hAdd: 'Feiertage hinzufügen',
+  hLoading: 'Feiertage werden geladen…',
+  hResult: '{added} hinzugefügt, {skipped} bereits vorhanden.',
+  hError: 'Feiertage konnten nicht geladen werden: {msg}',
+  hNoTypes: 'Zuerst einen TerminTyp anlegen.',
+  hNone: 'Keine Feiertage gefunden.',
+  delYearBtn: 'Termine eines Jahres löschen',
+  delTitle: 'Termine eines Jahres löschen',
+  delCount: '{count} Termine in {year} – werden gelöscht.',
+  delNone: 'Für dieses Jahr gibt es keine Termine dieses Typs.',
+  delDone: '{count} Termine aus {year} gelöscht.',
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
@@ -164,6 +180,7 @@ export const PL: Record<keyof typeof DE, string> = {
 
   langLabel: 'Język',
   menu: 'Menu',
+  legendToggle: 'Zwiń lub rozwiń legendę',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',
   authLogin: 'Zaloguj się',
@@ -189,6 +206,27 @@ export const PL: Record<keyof typeof DE, string> = {
   syncOk: 'Połączono – synchronizacja aktywna.',
   syncFail: 'Połączenie nie powiodło się – sprawdź token.',
   syncClose: 'Zamknij',
+  holidays: 'Święta',
+  holidaysTitle: 'Dodaj święta',
+  hYear: 'Rok',
+  hCountry: 'Kraj',
+  hAdd: 'Dodaj święta',
+  hLoading: 'Ładowanie świąt…',
+  hResult: '{added} dodano, {skipped} już istnieje.',
+  hError: 'Nie udało się załadować świąt: {msg}',
+  hNoTypes: 'Najpierw utwórz typ terminu.',
+  hNone: 'Nie znaleziono świąt.',
+  delYearBtn: 'Usuń terminy z roku',
+  delTitle: 'Usuń terminy z roku',
+  delCount: '{count} terminów w roku {year} – zostaną usunięte.',
+  delNone: 'Brak terminów tego typu w tym roku.',
+  delDone: 'Usunięto {count} terminów z roku {year}.',
 };
+
+/** Länder für den Feiertags-Import (Labels je Sprache). */
+export const COUNTRIES: { code: string; de: string; pl: string }[] = [
+  { code: 'DE', de: 'Deutschland', pl: 'Niemcy' },
+  { code: 'PL', de: 'Polen', pl: 'Polska' },
+];
 
 export type DictKey = keyof typeof DE;

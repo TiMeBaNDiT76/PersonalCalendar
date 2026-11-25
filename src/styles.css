@@ -391,9 +391,76 @@ button.today-label:hover {
   padding: 12px 16px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 12px;
   align-items: center;
+  /* Einklappbar: Form/Größe animieren, Inhalt wird geklippt */
+  max-width: 100%;
+  overflow: hidden;
+  transition:
+    max-width 0.25s ease,
+    padding 0.25s ease,
+    border-radius 0.25s ease;
+}
+
+/* Eingeklappt: winzige Pill – nur noch der Chevron, Inhalt komplett
+   aus dem Layout (display:none), damit die Box gar nicht größer
+   sein KANN als Schalter + Polsterung */
+.legend.collapsed {
+  max-width: 38px;
+  padding: 4px;
+  border-radius: 999px;
+  gap: 0;
+}
+
+.legend-toggle {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d5dae2;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-toggle:hover {
+  background: #f6f8fb;
+}
+
+/* In der Pill ist der eigene Rahmen des Schalters überflüssig */
+.legend.collapsed .legend-toggle {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+}
+
+.legend.collapsed .legend-toggle:hover {
+  background: rgba(15, 23, 42, 0.07);
+}
+
+.legend-content {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.legend.collapsed .legend-content {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legend {
+    transition: none;
+  }
 }
 
 .legend-title {
@@ -483,6 +550,25 @@ button.today-label:hover {
   color: var(--ink);
 }
 
+.dialog select.native-select {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px 10px;
+  border: 1px solid #d7dbe2;
+  border-radius: 9px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dialog select.native-select:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: var(--accent);
+}
+
 .dialog input:focus {
   outline: 2px solid #bfdbfe;
   border-color: var(--accent);
@@ -563,6 +649,15 @@ button.today-label:hover {
   z-index: 5;
   display: none;
   overflow: hidden;
+  /* Lange Typenlisten scrollen selbst, statt den Dialog zu sprengen */
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+}
+
+/* Flip: bei zu wenig Platz unten öffnet die Liste nach oben */
+.dropdown.up .dd-list {
+  top: auto;
+  bottom: calc(100% + 4px);
 }
 
 .dropdown.open .dd-list {
@@ -1253,6 +1348,21 @@ button.today-label:hover {
     border: 1px solid #ccc;
     margin: 8px 0 0;
     padding: 6px 10px;
+  }
+
+  /* Im Druck immer ausgeklappt, Schalter aus */
+  .legend-toggle {
+    display: none !important;
+  }
+
+  .legend.collapsed {
+    max-width: none !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .legend.collapsed .legend-content {
+    display: flex !important;
   }
 
   @page {

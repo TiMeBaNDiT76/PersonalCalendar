@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nContext';
 import type { CalendarEntry, CalendarType } from '../types';
+import { useDropdownFlip } from '../hooks/useDropdownFlip';
 import { typeLabel } from '../utils/labels';
 import { uid } from '../utils/ids';
 
@@ -34,6 +35,9 @@ export default function EntryDialog({
   const [error, setError] = useState('');
   const [ddOpen, setDdOpen] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [ddUp, measureFlip] = useDropdownFlip(ddOpen, dialogRef, listRef);
 
   // Zustand zurücksetzen, wenn der Dialog geöffnet wird
   useEffect(() => {
@@ -67,6 +71,19 @@ export default function EntryDialog({
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
   }, [ddOpen]);
+
+  /**
+   * Öffnet das Dropdown und klappt es nach oben, wenn unten nicht genug
+   * Platz im Dialog ist (sonst wäre die Liste am Rand abgeschnitten).
+   */
+  const toggleDd = () => {
+    if (ddOpen) {
+      setDdOpen(false);
+      return;
+    }
+    setDdOpen(true);
+    measureFlip();
+  };
 
   if (!open) return null;
 
@@ -117,7 +134,7 @@ export default function EntryDialog({
         if (ev.target === ev.currentTarget) onClose();
       }}
     >
-      <div className="dialog">
+      <div className="dialog" ref={dialogRef}>
         <div className="dialog-title">{entry ? t('entryEdit') : t('entryNew')}</div>
 
         <label>
@@ -145,19 +162,19 @@ export default function EntryDialog({
 
         <label>
           {t('fType')}
-          <div className={`dropdown${ddOpen ? ' open' : ''}`}>
+          <div className={`dropdown${ddOpen ? ' open' : ''}${ddUp ? ' up' : ''}`}>
             <button
               type="button"
               className="dd-btn"
               aria-haspopup="listbox"
               aria-expanded={ddOpen}
-              onClick={() => setDdOpen((v) => !v)}
+              onClick={toggleDd}
             >
               <span className="dot" style={{ background: selected?.color ?? '#cbd2dc' }} />
               <span>{selectedLabel}</span>
               <span className="caret">▼</span>
             </button>
-            <div className="dd-list" role="listbox">
+            <div className="dd-list" role="listbox" ref={listRef}>
               {types.map((ty) => (
                 <div
                   key={ty.id}

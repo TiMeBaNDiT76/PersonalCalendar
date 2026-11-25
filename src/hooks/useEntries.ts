@@ -54,6 +54,10 @@ export interface UseEntriesResult {
   /** Token speichern und Verbindung testen (true = ok) */
   connectToken: (token: string) => Promise<boolean>;
   disconnectToken: () => void;
+  /** Mehrere Einträge auf einmal anlegen (ein Sync-Push) */
+  addEntries: (list: CalendarEntry[]) => void;
+  /** Alle (nicht gelöschten) Einträge eines Typs in einem Jahr tombstonen */
+  deleteEntriesByTypeYear: (typeId: string, year: number) => void;
 }
 
 /**
@@ -286,6 +290,44 @@ export function useEntries(): UseEntriesResult {
     [persist],
   );
 
+  /** Bulk-Anlage (z. B. Feiertags-Import): ein Overlay-Schrieb, ein Push. */
+  const addEntries = useCallback(
+    (list: CalendarEntry[]) => {
+      if (list.length === 0) return;
+      persist((prev) => ({
+        ...prev,
+        entries: [
+          ...prev.entries,
+          ...list.map((e) => ({ ...e, updatedAt: e.updatedAt ?? nowISO() })),
+        ],
+      }));
+    },
+    [persist],
+  );
+
+  /**
+   * Räumt einen Typ für ein Jahr auf: alle Einträge, die das Jahr
+   * überlappen, werden als Tombstone markiert (ein Sync-Push).
+   */
+  const deleteEntriesByTypeYear = useCallback(
+    (typeId: string, year: number) => {
+      const yStart = `${year}-01-01`;
+      const yEnd = `${year}-12-31`;
+      persist((prev) => ({
+        ...prev,
+        entries: prev.entries.map((e) =>
+          e.typeId === typeId &&
+          !e.deleted &&
+          e.startDate <= yEnd &&
+          e.endDate >= yStart
+            ? { ...e, deleted: true, updatedAt: nowISO() }
+            : e,
+        ),
+      }));
+    },
+    [persist],
+  );
+
   const deleteEntry = useCallback(
     (id: string) => {
       // Tombstone statt Hard-Delete – damit die Lösung auch andere Geräte erreicht
@@ -396,5 +438,7 @@ export function useEntries(): UseEntriesResult {
     toJson,
     connectToken,
     disconnectToken,
+    addEntries,
+    deleteEntriesByTypeYear,
   };
 }
