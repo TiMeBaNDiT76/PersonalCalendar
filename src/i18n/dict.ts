@@ -38,7 +38,7 @@ export const WEEKDAYS: Record<Lang, string[]> = {
 };
 
 export const DE = {
-  title: 'Jahreskalender',
+  title: 'SOS-Kalender',
   today: 'Heute',
   newEntry: '+ Termin',
   manageTypes: 'Typen verwalten',
@@ -89,7 +89,7 @@ export const DE = {
 } as const;
 
 export const PL: Record<keyof typeof DE, string> = {
-  title: 'Kalendarz roczny',
+  title: 'Kalendarz SOS',
   today: 'Dzisiaj',
   newEntry: '+ Termin',
   manageTypes: 'Zarządzaj typami',

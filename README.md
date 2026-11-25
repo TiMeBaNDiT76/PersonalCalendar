@@ -1,4 +1,4 @@
-# PersonalCalendar – Jahreskalender
+# PersonalCalendar – SOS-Kalender (Jahreskalender)
 
 Ein Jahreskalender als Webseite im Poster-Stil: 12 Monatsspalten nebeneinander,
 die Tage laufen vertikal. Zeiträume (Ferien, Tochter-Wochenenden, Urlaub …)
