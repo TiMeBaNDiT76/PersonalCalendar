@@ -176,12 +176,15 @@ export default function HolidaysDialog({ open, years, types, entries, onAdd, onC
           </label>
         </div>
 
-        <label>
-          {t('fType')}
+        {/* Kein <label>: Klick auf die div-Option würde vom Label an den
+            dd-btn weitergeleitet (toggleDd) → Dropdown öffnet sofort wieder */}
+        <div className="field">
+          <span id="holiday-type-label">{t('fType')}</span>
           <div className={`dropdown${ddOpen ? ' open' : ''}${ddUp ? ' up' : ''}`}>
             <button
               type="button"
               className="dd-btn"
+              aria-labelledby="holiday-type-label"
               aria-haspopup="listbox"
               aria-expanded={ddOpen}
               onClick={toggleDd}
@@ -212,7 +215,7 @@ export default function HolidaysDialog({ open, years, types, entries, onAdd, onC
               {types.length === 0 && <div className="dd-option">{t('hNoTypes')}</div>}
             </div>
           </div>
-        </label>
+        </div>
 
         <div className="error" role="alert">
           {err}

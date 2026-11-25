@@ -658,7 +658,9 @@ button.today-label:hover {
   margin-bottom: 14px;
 }
 
-.dialog label {
+/* .field = Ersatz für <label> um das Typen-Dropdown (siehe EntryDialog) */
+.dialog label,
+.dialog .field {
   display: block;
   font-size: 12px;
   font-weight: 600;

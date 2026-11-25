@@ -160,12 +160,16 @@ export default function EntryDialog({
           </label>
         </div>
 
-        <label>
-          {t('fType')}
+        {/* Kein <label>: ein Klick auf die div-Option würde vom Label an
+            den dd-btn weitergeleitet (toggleDd) → Dropdown öffnet sofort
+            wieder. stattdessen Caption per aria-labelledby verknüpfen. */}
+        <div className="field">
+          <span id="entry-type-label">{t('fType')}</span>
           <div className={`dropdown${ddOpen ? ' open' : ''}${ddUp ? ' up' : ''}`}>
             <button
               type="button"
               className="dd-btn"
+              aria-labelledby="entry-type-label"
               aria-haspopup="listbox"
               aria-expanded={ddOpen}
               onClick={toggleDd}
@@ -193,7 +197,7 @@ export default function EntryDialog({
               {types.length === 0 && <div className="dd-option">{t('noTypes')}</div>}
             </div>
           </div>
-        </label>
+        </div>
 
         <div className="error" role="alert">
           {error}
