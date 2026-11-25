@@ -1,4 +1,7 @@
 :root {
+  /* Opt-out gegen Chromes „Auto Dark Theme" (Android): die Seite bleibt
+     immer hell, damit die Terminfarben erkennbar bleiben */
+  color-scheme: only light;
   --accent: #2563eb;
   --ink: #1f2430;
   --muted: #6b7280;
