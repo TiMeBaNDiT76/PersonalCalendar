@@ -616,6 +616,15 @@ button.today-label:hover {
   z-index: 5;
   display: none;
   overflow: hidden;
+  /* Lange Typenlisten scrollen selbst, statt den Dialog zu sprengen */
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+}
+
+/* Flip: bei zu wenig Platz unten öffnet die Liste nach oben */
+.dropdown.up .dd-list {
+  top: auto;
+  bottom: calc(100% + 4px);
 }
 
 .dropdown.open .dd-list {

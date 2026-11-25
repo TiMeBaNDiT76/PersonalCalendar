@@ -33,7 +33,10 @@ export default function EntryDialog({
   const [typeId, setTypeId] = useState('');
   const [error, setError] = useState('');
   const [ddOpen, setDdOpen] = useState(false);
+  const [ddUp, setDdUp] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Zustand zurücksetzen, wenn der Dialog geöffnet wird
   useEffect(() => {
@@ -67,6 +70,36 @@ export default function EntryDialog({
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
   }, [ddOpen]);
+
+  // Flip-Zustand zurücksetzen, sobald das Dropdown zu ist
+  useEffect(() => {
+    if (!ddOpen) setDdUp(false);
+  }, [ddOpen]);
+
+  /**
+   * Öffnet das Dropdown und klappt es nach oben, wenn unten nicht genug
+   * Platz im Dialog ist (sonst wäre die Liste am Rand abgeschnitten).
+   */
+  const toggleDd = () => {
+    if (ddOpen) {
+      setDdOpen(false);
+      return;
+    }
+    setDdOpen(true);
+    requestAnimationFrame(() => {
+      const list = listRef.current;
+      const dlg = dialogRef.current;
+      if (!list || !dlg) return;
+      const lb = list.getBoundingClientRect(); // gemessen im abwärts-Zustand
+      const dr = dlg.getBoundingClientRect();
+      if (lb.bottom <= dr.bottom - 8) {
+        setDdUp(false); // passt nach unten
+        return;
+      }
+      const upTop = lb.top - lb.height - 8; // wäre die Position nach oben
+      setDdUp(upTop >= dr.top + 8); // nur flippen, wenn oben genug Platz
+    });
+  };
 
   if (!open) return null;
 
@@ -117,7 +150,7 @@ export default function EntryDialog({
         if (ev.target === ev.currentTarget) onClose();
       }}
     >
-      <div className="dialog">
+      <div className="dialog" ref={dialogRef}>
         <div className="dialog-title">{entry ? t('entryEdit') : t('entryNew')}</div>
 
         <label>
@@ -145,19 +178,19 @@ export default function EntryDialog({
 
         <label>
           {t('fType')}
-          <div className={`dropdown${ddOpen ? ' open' : ''}`}>
+          <div className={`dropdown${ddOpen ? ' open' : ''}${ddUp ? ' up' : ''}`}>
             <button
               type="button"
               className="dd-btn"
               aria-haspopup="listbox"
               aria-expanded={ddOpen}
-              onClick={() => setDdOpen((v) => !v)}
+              onClick={toggleDd}
             >
               <span className="dot" style={{ background: selected?.color ?? '#cbd2dc' }} />
               <span>{selectedLabel}</span>
               <span className="caret">▼</span>
             </button>
-            <div className="dd-list" role="listbox">
+            <div className="dd-list" role="listbox" ref={listRef}>
               {types.map((ty) => (
                 <div
                   key={ty.id}
