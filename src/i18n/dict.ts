@@ -87,6 +87,7 @@ export const DE = {
 
   langLabel: 'Sprache',
   menu: 'Menü',
+  legendToggle: 'Legende ein-/ausklappen',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
   authLogin: 'Anmelden',
@@ -164,6 +165,7 @@ export const PL: Record<keyof typeof DE, string> = {
 
   langLabel: 'Język',
   menu: 'Menu',
+  legendToggle: 'Zwiń lub rozwiń legendę',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',
   authLogin: 'Zaloguj się',
