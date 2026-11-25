@@ -44,7 +44,6 @@ export const DE = {
   manageTypes: 'Typen verwalten',
   jsonData: 'Daten (JSON)',
   legend: 'Legende',
-  hint: 'Tippe auf eine Tageszeile = neuer Termin · Tippe auf einen Farbstreifen = bearbeiten',
   prevPair: 'Vorheriger Monat',
   nextPair: 'Nächster Monat',
 
@@ -87,6 +86,7 @@ export const DE = {
 
   langLabel: 'Sprache',
   menu: 'Menü',
+  dragSort: 'Reihenfolge ändern',
   legendToggle: 'Legende ein-/ausklappen',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
@@ -137,7 +137,6 @@ export const PL: Record<keyof typeof DE, string> = {
   manageTypes: 'Zarządzaj typami',
   jsonData: 'Dane (JSON)',
   legend: 'Legenda',
-  hint: 'Dotknij wiersza dnia = nowy termin · dotknij paska koloru = edytuj',
   prevPair: 'Poprzedni miesiąc',
   nextPair: 'Następny miesiąc',
 
@@ -180,6 +179,7 @@ export const PL: Record<keyof typeof DE, string> = {
 
   langLabel: 'Język',
   menu: 'Menu',
+  dragSort: 'Zmień kolejność',
   legendToggle: 'Zwiń lub rozwiń legendę',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',

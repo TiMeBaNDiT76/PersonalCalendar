@@ -247,12 +247,6 @@ button.today-label:hover {
   background: #fef2f2;
 }
 
-.hint {
-  margin: 0 16px 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .status {
   text-align: center;
   padding: 64px 16px;
@@ -455,6 +449,58 @@ button.today-label:hover {
 
 .legend.collapsed .legend-content {
   display: none;
+}
+
+/* ---------- Legenden-Pill (Handy, in der Monatsleiste) ---------- */
+.legend-pill-wrap {
+  position: relative;
+  flex: none;
+  margin-right: 2px;
+}
+
+.legend-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #d5dae2;
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 9px;
+  min-height: 32px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.legend-pill:hover {
+  background: #f6f8fb;
+}
+
+.legend-mini {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.legend-caret {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* Karte unter der Monatsleiste (Dropdown wie das Burger-Menü) */
+.legend-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 46;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+  padding: 10px 12px;
+  min-width: 210px;
+  max-width: calc(100vw - 24px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -752,6 +798,50 @@ button.today-label:hover {
 
 .dd-option:hover {
   background: #f1f5fb;
+}
+
+/* Typen-Liste: Drag & Drop per Griff */
+.type-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.drag-handle {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: #9aa3b2;
+  cursor: grab;
+  touch-action: none; /* Pointer-Drag auf Touch statt Scrollen */
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 6px;
+  margin-left: -4px;
+}
+
+.drag-handle:hover {
+  background: #f1f5f9;
+  color: var(--ink);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.type-row.dragging {
+  opacity: 0.55;
+  background: #f1f5f9;
+  border-radius: 8px;
 }
 
 /* Typen-Liste */
@@ -1113,17 +1203,13 @@ button.today-label:hover {
     display: none;
   }
 
-  .hint {
-    margin: 0 8px 8px;
-  }
-
   /* Monatsleiste: klebt direkt unter der Kopfzeile (Höhe via --hdr-h,
      die Header-Komponente misst sie mit dem ResizeObserver) */
   .month-pager {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px; /* Platz für Legenden-Pill + Heute in einer Zeile */
     position: sticky;
     top: var(--hdr-h, 96px);
     z-index: 39;
@@ -1155,7 +1241,7 @@ button.today-label:hover {
     font-size: 13px;
     font-weight: 600;
     text-align: center;
-    min-width: 150px;
+    min-width: 120px;
   }
 
   .pager-today {
@@ -1228,17 +1314,10 @@ button.today-label:hover {
     font-size: 10px;
   }
 
-  /* Legende unten klebrig, damit Farben beim Scrollen erreichbar bleiben;
-     rechts Platz für den festen Sync-Button */
+  /* Fußzeile-Legende nur auf dem Desktop – auf dem Handy steckt die
+     Legende als Pill in der Monatsleiste (siehe .legend-pill) */
   .legend {
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-    margin: 8px;
-    padding: 8px 104px 8px 12px;
-    gap: 12px;
-    font-size: 12px;
-    box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.1);
+    display: none;
   }
 
   /* Burger-Menü: Auslöser sichtbar, Aktionen als Dropdown-Karte */
@@ -1302,11 +1381,12 @@ button.today-label:hover {
     font-size: 13px;
   }
 
-  /* Sync: fest unten rechts, optisch auf Höhe der Legende */
+  /* Sync: fest unten LINKS (Gegenstück zum FAB rechts) */
   .sync-btn {
     position: fixed;
-    right: 16px;
-    bottom: 12px;
+    left: 16px;
+    right: auto;
+    bottom: 8px;
     z-index: 35;
     padding: 8px 14px;
     border-radius: 999px;
@@ -1318,12 +1398,13 @@ button.today-label:hover {
     font-size: 10px;
   }
 
-  /* Floating Action Button rechts unten */
+  /* Floating Action Button rechts unten – ganz unten, da Sync links
+     und die Legenden-Leiste entfallen ist */
   .fab {
     display: flex;
     position: fixed;
     right: 16px;
-    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     z-index: 40;
     width: 54px;
     height: 54px;
@@ -1409,7 +1490,6 @@ button.today-label:hover {
   .topbar .menu-toggle,
   .topbar .header-actions,
   .lang-switch,
-  .hint,
   .fab,
   .day-popover,
   .overlay {

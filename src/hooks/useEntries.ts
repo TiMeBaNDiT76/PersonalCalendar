@@ -58,6 +58,8 @@ export interface UseEntriesResult {
   addEntries: (list: CalendarEntry[]) => void;
   /** Alle (nicht gelöschten) Einträge eines Typs in einem Jahr tombstonen */
   deleteEntriesByTypeYear: (typeId: string, year: number) => void;
+  /** Neue Reihenfolge der Typen übernehmen (updatedAt-Stempel → merge-sicher) */
+  reorderTypes: (ordered: CalendarType[]) => void;
 }
 
 /**
@@ -328,6 +330,22 @@ export function useEntries(): UseEntriesResult {
     [persist],
   );
 
+  /**
+   * Neue Typ-Reihenfolge (Drag & Drop). Alle Typen bekommen frische
+   * updatedAt-Zeitstempel – sonst würde die Merge-Regel (Gleichstand →
+   * Remote gewinnt) die Sortierung auf einem anderen Gerät rückgängig
+   * machen.
+   */
+  const reorderTypes = useCallback(
+    (ordered: CalendarType[]) => {
+      persist((prev) => ({
+        ...prev,
+        types: ordered.map((t) => ({ ...t, updatedAt: nowISO() })),
+      }));
+    },
+    [persist],
+  );
+
   const deleteEntry = useCallback(
     (id: string) => {
       // Tombstone statt Hard-Delete – damit die Lösung auch andere Geräte erreicht
@@ -440,5 +458,6 @@ export function useEntries(): UseEntriesResult {
     disconnectToken,
     addEntries,
     deleteEntriesByTypeYear,
+    reorderTypes,
   };
 }

@@ -39,6 +39,7 @@ function CalendarApp() {
     disconnectToken,
     addEntries,
     deleteEntriesByTypeYear,
+    reorderTypes,
   } = useEntries();
   const [years, setYears] = useState<number[]>(() => visibleYears());
   const [year, setYear] = useState<number>(() => {
@@ -111,7 +112,6 @@ function CalendarApp() {
         syncStatus={syncStatus}
         onSyncClick={() => setSyncOpen(true)}
       />
-      <p className="hint">{t('hint')}</p>
       <MonthGrid
         data={view}
         years={years}
@@ -120,6 +120,13 @@ function CalendarApp() {
         todayTick={todayTick}
         onScrollYear={setYear}
         onToday={handleToday}
+        leftSlot={
+          <Legend
+            variant="pill"
+            types={view.types}
+            onTypeClick={() => setTypesOpen(true)}
+          />
+        }
         onDayClick={(iso) => setEntryDlg({ entryId: null, date: iso })}
         onEntryClick={(id) => setEntryDlg({ entryId: id, date: null })}
       />
@@ -145,6 +152,7 @@ function CalendarApp() {
         onSaveType={saveType}
         onDeleteType={deleteType}
         onDeleteEntries={deleteEntriesByTypeYear}
+        onReorderTypes={reorderTypes}
         onClose={() => setTypesOpen(false)}
       />
 
