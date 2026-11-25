@@ -89,7 +89,7 @@ export default function Header({
         onClick={onToday}
         title={t('todayJump')}
       >
-        {t('today')}: <b>{fmtISO(todayISO)}</b>
+        <b>{fmtISO(todayISO)}</b>
       </button>
 
       <div className="spacer" />
