@@ -296,6 +296,9 @@ button.today-label:hover {
   height: 19px;
   padding: 0 4px;
   border-radius: 4px;
+  /* Feine Hellgrau-Linie zwischen den Tagen (gleiche Haarlinie wie
+     unter dem Monatsnamen); box-sizing: border-box hält die Höhe */
+  border-bottom: 1px solid var(--line);
   font-size: 11px;
   cursor: pointer;
   position: relative;
@@ -305,6 +308,11 @@ button.today-label:hover {
 
 .day-row:hover {
   background: #f1f5fb;
+}
+
+/* Unter dem letzten Tag keine Linie – sonst Doppelkante zur Kartenkante */
+.day-row:last-child {
+  border-bottom: 0;
 }
 
 .day-row.weekend {
