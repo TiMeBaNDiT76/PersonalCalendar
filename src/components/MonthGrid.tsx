@@ -44,13 +44,13 @@ interface DayPop {
 const MOBILE_QUERY = '(max-width: 639px)';
 /** Berührungsgerät ohne Hover → Tageskarte statt Bearbeiten-Direktstart. */
 const TOUCH_QUERY = '(hover: none)';
-const PAIRS_PER_YEAR = 6; // 12 Monate / 2 pro Seite
+const MONTHS_PER_YEAR = 12; // eine Seite = ein Monat
 
 /**
  * Jahresstrom: alle sichtbaren Jahre als durchgehende Kette von
- * Paar-Seiten [Jan|Feb] … [Nov|Dez] – auf dem Handy per Scroll-Snap
- * swipbar, auch über Jahresgrenzen hinweg. Grenzen sind die Fenster-
- * Enden (Jahr−1 links, Jahr+3 rechts).
+ * Einzel-Monatsseiten – auf dem Handy per Scroll-Snap swipbar
+ * (1 Wisch = 1 Monat), auch über Jahresgrenzen hinweg. Grenzen sind
+ * die Fensterenden (Jahr−1 links, Jahr+3 rechts).
  * Desktop/Tablet: nur das aktive Jahr sichtbar (year-block-Switch).
  */
 export default function MonthGrid({
@@ -70,7 +70,7 @@ export default function MonthGrid({
   const [page, setPage] = useState(0);
   const [pop, setPop] = useState<DayPop | null>(null);
 
-  const maxPage = years.length * PAIRS_PER_YEAR - 1;
+  const maxPage = years.length * MONTHS_PER_YEAR - 1;
   const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
   const isTouch = () => window.matchMedia(TOUCH_QUERY).matches;
 
@@ -131,7 +131,8 @@ export default function MonthGrid({
     onDayClick?.(iso);
   };
 
-  /** Streifen/Name: Touch → Tageskarte, Desktop → direkt bearbeiten. */
+  /** Streifen/Name: Touch → immer Tageskarte; Desktop → Karte nur bei
+   *  Überlappung (mehrere Termine am Tag), sonst direkt bearbeiten. */
   const handleEntryClick = (
     ev: ReactMouseEvent<HTMLElement>,
     iso: string,
@@ -144,18 +145,23 @@ export default function MonthGrid({
       openPopover(iso, active, row);
       return;
     }
+    if (active.length > 1) {
+      // Desktop: überlappende Termine als gemeinsame Liste anzeigen
+      openPopover(iso, active, row);
+      return;
+    }
     onEntryClick?.(entryId);
   };
 
-  /** Absolute Seite eines Jahres (+ Paar-Index). */
-  const absPage = (y: number, pair: number): number => {
+  /** Absolute Seite eines Jahres (+ Monatsindex0–11). */
+  const absPage = (y: number, month: number): number => {
     const yi = Math.max(0, years.indexOf(y));
-    return yi * PAIRS_PER_YEAR + pair;
+    return yi * MONTHS_PER_YEAR + month;
   };
 
-  /** Startpaar: heutiger Monat im aktuellen Jahr, sonst Jan|Feb. */
-  const defaultPair = (y: number): number =>
-    y === currentYear ? Math.floor(new Date().getMonth() / 2) : 0;
+  /** Startseite: heutiger Monat im aktuellen Jahr, sonst Januar. */
+  const defaultMonth = (y: number): number =>
+    y === currentYear ? new Date().getMonth() : 0;
 
   // Mount + Reiter-Klick: sofortige Position (ohne Animation), nur Handy
   useLayoutEffect(() => {
@@ -163,7 +169,7 @@ export default function MonthGrid({
     lastNavRef.current = navTick;
     const el = gridRef.current;
     if (!el || !isMobile()) return;
-    const target = absPage(year, defaultPair(year));
+    const target = absPage(year, defaultMonth(year));
     setPage(target);
     el.scrollLeft = target * el.clientWidth;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -176,7 +182,7 @@ export default function MonthGrid({
     if (!el) return;
     const m = new Date().getMonth();
     if (isMobile()) {
-      const target = absPage(currentYear, Math.floor(m / 2));
+      const target = absPage(currentYear, m);
       setPage(target);
       el.scrollTo({ left: target * el.clientWidth, behavior: 'smooth' });
     } else {
@@ -208,7 +214,7 @@ export default function MonthGrid({
     if (!el || el.clientWidth === 0 || !isMobile()) return;
     const p = Math.max(0, Math.min(maxPage, Math.round(el.scrollLeft / el.clientWidth)));
     setPage(p);
-    const yi = Math.min(years.length - 1, Math.floor(p / PAIRS_PER_YEAR));
+    const yi = Math.min(years.length - 1, Math.floor(p / MONTHS_PER_YEAR));
     const y = years[yi];
     if (y !== year) onScrollYear?.(y);
   };
@@ -316,9 +322,9 @@ export default function MonthGrid({
     );
   };
 
-  const yi = Math.min(years.length - 1, Math.floor(page / PAIRS_PER_YEAR));
-  const pair = page % PAIRS_PER_YEAR;
-  const pagerLabel = `${MONTHS[lang][pair * 2]} – ${MONTHS[lang][pair * 2 + 1]} ${years[yi]}`;
+  const yi = Math.min(years.length - 1, Math.floor(page / MONTHS_PER_YEAR));
+  const month = page % MONTHS_PER_YEAR;
+  const pagerLabel = `${MONTHS[lang][month]} ${years[yi]}`;
 
   return (
     <>
@@ -356,10 +362,9 @@ export default function MonthGrid({
             className={y === year ? 'year-block active' : 'year-block'}
             data-year={y}
           >
-            {Array.from({ length: PAIRS_PER_YEAR }, (_, p) => (
-              <div className="month-page" key={p}>
-                {renderMonth(y, p * 2)}
-                {renderMonth(y, p * 2 + 1)}
+            {Array.from({ length: MONTHS_PER_YEAR }, (_, m) => (
+              <div className="month-page" key={m}>
+                {renderMonth(y, m)}
               </div>
             ))}
           </div>
