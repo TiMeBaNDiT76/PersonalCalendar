@@ -90,6 +90,16 @@ function CalendarApp() {
         onDiscard={discardChanges}
         onClose={() => setJsonOpen(false)}
       />
+
+      {/* Schnellzugriff auf Handys */}
+      <button
+        type="button"
+        className="fab"
+        aria-label={t('newEntry')}
+        onClick={() => setEntryDlg({ entryId: null, date: todayISO })}
+      >
+        +
+      </button>
     </>
   );
 }

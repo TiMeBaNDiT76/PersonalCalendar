@@ -623,3 +623,255 @@ button {
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 12px;
 }
+
+/* ---------- Responsiv: Tablet (640–1023px): 3–4 Monatsspalten ---------- */
+@media (min-width: 640px) and (max-width: 767px) {
+  .year-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .month {
+    min-width: 0;
+    flex: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .year-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .month {
+    min-width: 0;
+    flex: none;
+  }
+}
+
+/* ---------- Responsiv: Handy (< 640px): 2 Spalten, Touch-freundlich ---------- */
+@media (max-width: 639px) {
+  body {
+    font-size: 13px;
+  }
+
+  .topbar {
+    margin: 8px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .tabs {
+    order: 10;
+    width: 100%;
+    scroll-snap-type: x proximity;
+  }
+
+  .tab {
+    scroll-snap-align: center;
+    padding: 8px 14px;
+  }
+
+  .today-label {
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* FAB übernimmt „+ Termin“ */
+  .new-btn {
+    display: none;
+  }
+
+  .hint {
+    margin: 0 8px 8px;
+  }
+
+  .year-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0 8px 6px;
+    overflow-x: visible;
+  }
+
+  .month {
+    min-width: 0;
+    flex: none;
+    padding: 8px 4px 10px;
+    border-radius: 10px;
+  }
+
+  .month-name {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Größere Touch-Ziele */
+  .day-row {
+    height: 26px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .wday {
+    width: 26px;
+    font-size: 10px;
+  }
+
+  /* Namensbeschriftung auf schmalen Spalten ausblenden (Info per Tap/Tooltip) */
+  .ename {
+    display: none;
+  }
+
+  /* Legende unten klebrig, damit Farben beim Scrollen erreichbar bleiben */
+  .legend {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    margin: 8px;
+    padding: 8px 12px;
+    gap: 12px;
+    font-size: 12px;
+    box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.1);
+  }
+
+  .legend-title {
+    font-size: 10px;
+  }
+
+  /* Floating Action Button rechts unten */
+  .fab {
+    display: flex;
+    position: fixed;
+    right: 16px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    width: 54px;
+    height: 54px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+  }
+
+  .fab:active {
+    transform: scale(0.94);
+  }
+
+  /* Dialoge als Vollbild */
+  .overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .dialog,
+  .dialog.wide {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    overflow: auto;
+  }
+
+  .dialog input[type='text'],
+  .dialog input[type='date'] {
+    font-size: 16px; /* verhindert unbeabsichtigten Zoom in iOS Safari */
+  }
+
+  .dd-btn {
+    padding: 12px 10px;
+  }
+
+  .dd-option {
+    padding: 12px 11px;
+  }
+
+  .mini {
+    padding: 9px 12px;
+  }
+}
+
+/* Desktop-Standard: FAB ausblenden */
+.fab {
+  display: none;
+}
+
+/* ---------- Druck (A3 quer) ---------- */
+@media print {
+  body {
+    background: #fff;
+    font-size: 10px;
+  }
+
+  .topbar {
+    margin: 0 0 6px;
+    padding: 6px 8px;
+    box-shadow: none;
+    border: 1px solid #ccc;
+    gap: 8px;
+  }
+
+  .topbar .btn,
+  .lang-switch,
+  .hint,
+  .fab,
+  .overlay {
+    display: none !important;
+  }
+
+  .year-grid {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .month {
+    min-width: 0;
+    flex: none;
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+
+  .day-row {
+    height: 15px;
+    font-size: 9px;
+  }
+
+  .ename {
+    font-size: 8px;
+  }
+
+  .legend {
+    position: static;
+    box-shadow: none;
+    border: 1px solid #ccc;
+    margin: 8px 0 0;
+    padding: 6px 10px;
+  }
+
+  @page {
+    size: A3 landscape;
+    margin: 8mm;
+  }
+}

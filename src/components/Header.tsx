@@ -36,7 +36,7 @@ export default function Header({ years, year, onYearChange, onNewEntry, onManage
           </button>
         ))}
       </div>
-      <button type="button" className="btn primary" onClick={onNewEntry} disabled={!onNewEntry}>
+      <button type="button" className="btn primary new-btn" onClick={onNewEntry} disabled={!onNewEntry}>
         {t('newEntry')}
       </button>
       <button type="button" className="btn" onClick={onManageTypes} disabled={!onManageTypes}>
