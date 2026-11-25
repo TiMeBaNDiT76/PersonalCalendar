@@ -86,6 +86,7 @@ export const DE = {
   close: 'Schließen',
 
   langLabel: 'Sprache',
+  menu: 'Menü',
   loading: 'Wird geladen…',
   loadError: 'Daten konnten nicht geladen werden: {msg}',
   authLogin: 'Anmelden',
@@ -162,6 +163,7 @@ export const PL: Record<keyof typeof DE, string> = {
   close: 'Zamknij',
 
   langLabel: 'Język',
+  menu: 'Menu',
   loading: 'Ładowanie…',
   loadError: 'Nie udało się załadować danych: {msg}',
   authLogin: 'Zaloguj się',
