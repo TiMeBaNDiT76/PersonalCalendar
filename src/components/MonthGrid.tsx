@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -284,19 +285,34 @@ export default function MonthGrid({
       });
       let name: JSX.Element | null = null;
       if (starters.length > 0) {
-        // Alle Start-Namen gemeinsam (kann mit … gekürzt werden)
-        const joined = starters.map((e) => e.name).join(' · ');
+        // Alle Start-Namen in einer Zeile (mit … gekürzt) – aber jeder
+        // Termin in seiner eigenen Typ-Farbe, mit eigenem Tooltip/Klick.
         const tip = starters
           .map((e) => `${e.name} · ${fmtISO(e.startDate)} – ${fmtISO(e.endDate)}`)
           .join('  |  ');
         name = (
           <span
             className="ename"
-            style={{ color: colorOf(starters[0].typeId) }}
             title={tip}
             onClick={(ev) => handleEntryClick(ev, iso, active, starters[0].id)}
           >
-            {joined}
+            {starters.map((e, i) => (
+              <Fragment key={e.id}>
+                {i > 0 && (
+                  <span className="ename-sep" aria-hidden="true">
+                    {' · '}
+                  </span>
+                )}
+                <span
+                  className="ename-part"
+                  style={{ color: colorOf(e.typeId) }}
+                  title={`${e.name} · ${fmtISO(e.startDate)} – ${fmtISO(e.endDate)} · ${typeName(e.typeId)}`}
+                  onClick={(ev) => handleEntryClick(ev, iso, active, e.id)}
+                >
+                  {e.name}
+                </span>
+              </Fragment>
+            ))}
           </span>
         );
       }
