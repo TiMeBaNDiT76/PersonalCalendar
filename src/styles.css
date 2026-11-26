@@ -388,6 +388,16 @@ button.today-label:hover {
   cursor: pointer;
 }
 
+/* Einzelner Terminname innerhalb der .ename-Zeile: eigene Typ-Farbe */
+.ename-part {
+  cursor: pointer;
+}
+
+/* Trennzeichen zwischen mehreren Start-Namen (gleiche Grau-Tonlage wie .wday) */
+.ename-sep {
+  color: #9aa3b2;
+}
+
 /* ---------- Legende ---------- */
 .legend {
   margin: 12px 16px 24px;
